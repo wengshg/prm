@@ -10,14 +10,12 @@ import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
-
 @Entity
 public class Schedule {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
+	
 	private long fid;
 	private long bid;
 	private long lid;
@@ -25,22 +23,22 @@ public class Schedule {
 	private String code;
 	private float quantity;
 	private String unit;
-	@Column(name="schd_sdate")
+	@Column(name="schd_sdate", nullable=false)
 	@Temporal(TemporalType.DATE)
 	private Date schdStartDate;
-	@Column(name="schd_edate")
+	@Column(name="schd_edate", nullable=false)
 	@Temporal(TemporalType.DATE)
 	private Date schdEndDate;
 	@Column(name="schd_time")
-	@Temporal(TemporalType.TIME)
-	private Date schdTime;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date schdTime = new Date();
 	@Column(name="schd_uid")
-	private int schdUid;
+	private Long schdUid;
 	@Column(name="appr_time")
-	@Temporal(TemporalType.TIME)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date apprTime;
 	@Column(name="appr_uid")
-	private int apprUid;
+	private Long apprUid;
 	public long getId() {
 		return id;
 	}
@@ -107,10 +105,10 @@ public class Schedule {
 	public void setSchdTime(Date schdTime) {
 		this.schdTime = schdTime;
 	}
-	public int getSchdUid() {
+	public Long getSchdUid() {
 		return schdUid;
 	}
-	public void setSchdUid(int schdUid) {
+	public void setSchdUid(Long schdUid) {
 		this.schdUid = schdUid;
 	}
 	public Date getApprTime() {
@@ -119,10 +117,10 @@ public class Schedule {
 	public void setApprTime(Date apprTime) {
 		this.apprTime = apprTime;
 	}
-	public int getApprUid() {
+	public Long getApprUid() {
 		return apprUid;
 	}
-	public void setApprUid(int apprUid) {
+	public void setApprUid(Long apprUid) {
 		this.apprUid = apprUid;
 	}
 

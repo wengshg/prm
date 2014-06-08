@@ -7,8 +7,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-@Entity
+@Entity(name="workorder_log")
 public class WorkOrderLog {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -18,9 +20,10 @@ public class WorkOrderLog {
 	private int sequence;
 	private int status;
 	@Column(name="created_time")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date createdTime;
 	@Column(name="created_uid")
-	private long createdUid;
+	private Long createdUid;
 	public long getWid() {
 		return wid;
 	}
@@ -57,10 +60,10 @@ public class WorkOrderLog {
 	public void setCreatedTime(Date createdTime) {
 		this.createdTime = createdTime;
 	}
-	public long getCreatedUid() {
+	public Long getCreatedUid() {
 		return createdUid;
 	}
-	public void setCreatedUid(long createdUid) {
+	public void setCreatedUid(Long createdUid) {
 		this.createdUid = createdUid;
 	}
 

@@ -7,13 +7,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-@Entity
+@Entity(name="workorder")
 public class WorkOrder {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
-	private long sid;
+	private long sid = 0L;
 	private long fid;
 	private long bid;
 	private long lid;
@@ -23,16 +25,18 @@ public class WorkOrder {
 	private float quantity;
 	private String unit;
 	@Column(name="work_sdate")
+	@Temporal(TemporalType.DATE)
 	private Date workStartDate;
 	@Column(name="work_edate")
+	@Temporal(TemporalType.DATE)
 	private Date workEndDate;
 	private int status;
 	@Column(name="owner_uid")
 	private long ownerUid;
 	@Column(name="weighing_uid")
-	private long weighingUid;
+	private Long weighingUid;
 	@Column(name="operator_uid")
-	private long operatorUid;
+	private Long operatorUid;
 	public long getId() {
 		return id;
 	}
@@ -117,16 +121,16 @@ public class WorkOrder {
 	public void setOwnerUid(long ownerUid) {
 		this.ownerUid = ownerUid;
 	}
-	public long getWeighingUid() {
+	public Long getWeighingUid() {
 		return weighingUid;
 	}
-	public void setWeighingUid(long weighingUid) {
+	public void setWeighingUid(Long weighingUid) {
 		this.weighingUid = weighingUid;
 	}
-	public long getOperatorUid() {
+	public Long getOperatorUid() {
 		return operatorUid;
 	}
-	public void setOperatorUid(long operatorUid) {
+	public void setOperatorUid(Long operatorUid) {
 		this.operatorUid = operatorUid;
 	}
 

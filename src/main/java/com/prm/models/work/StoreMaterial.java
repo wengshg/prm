@@ -7,8 +7,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-@Entity
+@Entity(name="store_material")
 public class StoreMaterial {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -20,9 +22,10 @@ public class StoreMaterial {
 	private float quantity;
 	private String unit;
 	@Column(name="signed_date")
+	@Temporal(TemporalType.DATE)
 	private Date signedDate;
 	@Column(name="signed_uid")
-	private long signedUid;
+	private Long signedUid;
 	public long getId() {
 		return id;
 	}
@@ -65,10 +68,10 @@ public class StoreMaterial {
 	public void setSignedDate(Date signedDate) {
 		this.signedDate = signedDate;
 	}
-	public long getSignedUid() {
+	public Long getSignedUid() {
 		return signedUid;
 	}
-	public void setSignedUid(long signedUid) {
+	public void setSignedUid(Long signedUid) {
 		this.signedUid = signedUid;
 	}
 	

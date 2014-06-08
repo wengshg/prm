@@ -6,7 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity
+@Entity(name="workorder_container")
 public class WorkOrderContainer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

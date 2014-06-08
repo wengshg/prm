@@ -6,6 +6,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name="[user]")
@@ -13,19 +16,24 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
-	@Column(unique=true, nullable=true)
+	@NotNull
+	@Size(min=2, max=64)
+	@Column(unique=true, nullable=false)
 	private String username;
-	@Column
+	@NotNull
+	@Size(min=2, max=64)
 	private String passwd;
-	@Column
+	@NotNull
+	@Size(min=2, max=64)
 	private String name;
-	@Column
+	@NotNull
+	@Size(min=2, max=32)
 	private String dept;
-	@Column
+	@NotNull
+	@Size(min=2, max=32)
 	private String role;
 	@Column
 	private String memo;
-	@Column
 	private int enable;
 	public String getUsername() {
 		return username;
