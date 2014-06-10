@@ -1,16 +1,18 @@
 package com.prm.models.work;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import com.prm.models.listener.WorkOrderListener;
+
 @Entity(name="workorder")
+@EntityListeners({WorkOrderListener.class})
 public class WorkOrder {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,11 +27,9 @@ public class WorkOrder {
 	private float quantity;
 	private String unit;
 	@Column(name="work_sdate")
-	@Temporal(TemporalType.DATE)
-	private Date workStartDate;
+	private Long workStartDate;
 	@Column(name="work_edate")
-	@Temporal(TemporalType.DATE)
-	private Date workEndDate;
+	private Long workEndDate;
 	private int status;
 	@Column(name="owner_uid")
 	private long ownerUid;
@@ -97,16 +97,16 @@ public class WorkOrder {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public Date getWorkStartDate() {
+	public Long getWorkStartDate() {
 		return workStartDate;
 	}
-	public void setWorkStartDate(Date workStartDate) {
+	public void setWorkStartDate(Long workStartDate) {
 		this.workStartDate = workStartDate;
 	}
-	public Date getWorkEndDate() {
+	public Long getWorkEndDate() {
 		return workEndDate;
 	}
-	public void setWorkEndDate(Date workEndDate) {
+	public void setWorkEndDate(Long workEndDate) {
 		this.workEndDate = workEndDate;
 	}
 	public int getStatus() {

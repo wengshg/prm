@@ -1,5 +1,6 @@
 package com.prm.models.work;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -24,19 +25,15 @@ public class Schedule {
 	private float quantity;
 	private String unit;
 	@Column(name="schd_sdate", nullable=false)
-	@Temporal(TemporalType.DATE)
-	private Date schdStartDate;
+	private Long schdStartDate;
 	@Column(name="schd_edate", nullable=false)
-	@Temporal(TemporalType.DATE)
-	private Date schdEndDate;
+	private Long schdEndDate;
 	@Column(name="schd_time")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date schdTime = new Date();
+	private Long schdTime = Calendar.getInstance().getTimeInMillis();
 	@Column(name="schd_uid")
 	private Long schdUid;
 	@Column(name="appr_time")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date apprTime;
+	private Long apprTime;
 	@Column(name="appr_uid")
 	private Long apprUid;
 	public long getId() {
@@ -87,22 +84,22 @@ public class Schedule {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public Date getSchdStartDate() {
+	public Long getSchdStartDate() {
 		return schdStartDate;
 	}
-	public void setSchdStartDate(Date schdStartDate) {
+	public void setSchdStartDate(Long schdStartDate) {
 		this.schdStartDate = schdStartDate;
 	}
-	public Date getSchdEndDate() {
+	public Long getSchdEndDate() {
 		return schdEndDate;
 	}
-	public void setSchdEndDate(Date schdEndDate) {
+	public void setSchdEndDate(Long schdEndDate) {
 		this.schdEndDate = schdEndDate;
 	}
-	public Date getSchdTime() {
+	public Long getSchdTime() {
 		return schdTime;
 	}
-	public void setSchdTime(Date schdTime) {
+	public void setSchdTime(Long schdTime) {
 		this.schdTime = schdTime;
 	}
 	public Long getSchdUid() {
@@ -111,10 +108,10 @@ public class Schedule {
 	public void setSchdUid(Long schdUid) {
 		this.schdUid = schdUid;
 	}
-	public Date getApprTime() {
+	public Long getApprTime() {
 		return apprTime;
 	}
-	public void setApprTime(Date apprTime) {
+	public void setApprTime(Long apprTime) {
 		this.apprTime = apprTime;
 	}
 	public Long getApprUid() {

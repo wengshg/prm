@@ -13,6 +13,7 @@ public class BomItem {
 	private long bid;
 	private long mid;
 	private long pid;
+	private float tolerance;
 	private float quantity;
 	private String unit;
 	public long getId() {
@@ -50,6 +51,12 @@ public class BomItem {
 	}
 	public void setBid(long bid) {
 		this.bid = bid;
+	}
+	public float getTolerance() {
+		return tolerance;
+	}
+	public void setTolerance(float tolerance) {
+		this.tolerance = tolerance;
 	}
 
 }

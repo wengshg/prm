@@ -1,7 +1,6 @@
 package com.prm.resources.work;
 
 
-import java.sql.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
@@ -14,11 +13,7 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "schedule", path = "schedule")
 public interface ScheduleRepository extends PrmRepository<Schedule, Long> {
 	
-	@Query("select o from Schedule o where o.schdStartDate <= GETDATE() and o.schdEndDate >= GETDATE()")
-	List<Schedule> findByToday();
-	
-
 	@Query("select o from Schedule o where o.schdStartDate <= :date and o.schdEndDate >= :date")
-	List<Schedule> findByDT(@Param("date") Date date);
+	List<Schedule> findByDT(@Param("date") Long date);
 
 }

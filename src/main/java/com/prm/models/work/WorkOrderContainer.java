@@ -19,6 +19,7 @@ public class WorkOrderContainer {
 	private long eid;
 	private long gid;
 	private float total;
+	private int sequence;
 	private float quantity;
 	@Column(name="container_qty")
 	private float containerQty;
@@ -108,6 +109,12 @@ public class WorkOrderContainer {
 	}
 	public void setStatus(int status) {
 		this.status = status;
+	}
+	public int getSequence() {
+		return sequence;
+	}
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
 	}
 
 }
