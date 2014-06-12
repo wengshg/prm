@@ -10,6 +10,7 @@ import javax.persistence.Id;
 public class ProcessFlowItem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	private long id;
 	private long fid;
 	private long bid;
 	private long lid;
@@ -81,6 +82,12 @@ public class ProcessFlowItem {
 	}
 	public void setEnable(int enable) {
 		this.enable = enable;
+	}
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }

@@ -10,12 +10,16 @@ import javax.persistence.Id;
 public class WorkOrderMaterial {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	private long id;
 	private long wid;
 	private long mid;
-	private float total;
+	@Column(name="actl_total")
+	private float actTotal;
+	@Column(name="actl_quantity")
+	private float actQuantity;
 	private float quantity;
 	@Column(name="container_qty")
-	private float containerQty;
+	private int containerQty;
 	private String unit;
 	private int status;
 	public long getWid() {
@@ -30,22 +34,16 @@ public class WorkOrderMaterial {
 	public void setMid(long mid) {
 		this.mid = mid;
 	}
-	public float getTotal() {
-		return total;
-	}
-	public void setTotal(float total) {
-		this.total = total;
-	}
 	public float getQuantity() {
 		return quantity;
 	}
 	public void setQuantity(float quantity) {
 		this.quantity = quantity;
 	}
-	public float getContainerQty() {
+	public int getContainerQty() {
 		return containerQty;
 	}
-	public void setContainerQty(float containerQty) {
+	public void setContainerQty(int containerQty) {
 		this.containerQty = containerQty;
 	}
 	public String getUnit() {
@@ -59,6 +57,24 @@ public class WorkOrderMaterial {
 	}
 	public void setStatus(int status) {
 		this.status = status;
+	}
+	public float getActTotal() {
+		return actTotal;
+	}
+	public void setActTotal(float actTotal) {
+		this.actTotal = actTotal;
+	}
+	public float getActQuantity() {
+		return actQuantity;
+	}
+	public void setActQuantity(float actQuantity) {
+		this.actQuantity = actQuantity;
+	}
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }

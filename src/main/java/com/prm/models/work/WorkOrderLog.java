@@ -14,6 +14,7 @@ import javax.persistence.TemporalType;
 public class WorkOrderLog {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	private long id;
 	private long wid;
 	private long mid;
 	private long uid;
@@ -65,6 +66,12 @@ public class WorkOrderLog {
 	}
 	public void setCreatedUid(Long createdUid) {
 		this.createdUid = createdUid;
+	}
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }

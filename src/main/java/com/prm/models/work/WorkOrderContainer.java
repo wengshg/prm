@@ -10,6 +10,7 @@ import javax.persistence.Id;
 public class WorkOrderContainer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	private long id;
 	private long wid;
 	private long mid;
 	private long fid;
@@ -115,6 +116,12 @@ public class WorkOrderContainer {
 	}
 	public void setSequence(int sequence) {
 		this.sequence = sequence;
+	}
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }
