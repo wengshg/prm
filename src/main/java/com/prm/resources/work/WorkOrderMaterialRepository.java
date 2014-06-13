@@ -2,6 +2,7 @@ package com.prm.resources.work;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -17,4 +18,12 @@ public interface WorkOrderMaterialRepository extends
 	 * @return
 	 */
 	List<WorkOrderMaterial> findByWid(@Param("wid") Long wid);
+	
+	/**
+	 * 
+	 * @param wid
+	 * @param mid
+	 * @return
+	 */
+	List<WorkOrderMaterial> findByWidAndMid(@Param("wid") long wid, @Param("mid") long mid);
 }

@@ -15,7 +15,7 @@ apply plugin: 'spring-boot'
 apply plugin: 'war'
 
 war {
-    baseName = 'prmSpring'
+    baseName = 'prmServer'
     version = '0.1.0'
 }
 

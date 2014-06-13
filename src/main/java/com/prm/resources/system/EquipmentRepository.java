@@ -25,11 +25,5 @@ public interface EquipmentRepository extends PrmRepository<Equipment, Long> {
 	 */
 	List<Equipment> findByLidAndType(@Param("lid")long lid, @Param("type")String type);
 	
-	/**
-	 * 
-	 * @return
-	 */
-	@Query("select distinct o.type from Equipment o ")
-	List<String> findTypeDistinctOrderByTypeAsc();
 	
 }

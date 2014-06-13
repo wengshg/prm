@@ -22,9 +22,6 @@ public class WorkOrderContainer {
 	private float total;
 	private int sequence;
 	private float quantity;
-	@Column(name="container_qty")
-	private float containerQty;
-	private String code;
 	private String unit;
 	private int status;
 	public long getWid() {
@@ -86,18 +83,6 @@ public class WorkOrderContainer {
 	}
 	public void setQuantity(float quantity) {
 		this.quantity = quantity;
-	}
-	public float getContainerQty() {
-		return containerQty;
-	}
-	public void setContainerQty(float containerQty) {
-		this.containerQty = containerQty;
-	}
-	public String getCode() {
-		return code;
-	}
-	public void setCode(String code) {
-		this.code = code;
 	}
 	public String getUnit() {
 		return unit;
