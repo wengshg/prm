@@ -1,5 +1,5 @@
 <configuration debug="true"> 
-
+  <substitutionProperty name="log.base" value="../logs/prm" />
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
     <!-- encoders are  by default assigned the type
          ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
@@ -8,25 +8,33 @@
     </encoder>
   </appender>
   
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>prm.log</file>
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${log.base}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${log.base}.%d{yyyy-MM-dd}.log.zip</FileNamePattern>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <MaxFileSize>20MB</MaxFileSize>
+    </triggeringPolicy>
     <encoder>
       <pattern>%date %level [%thread] %-5level %logger{36} %msg%n</pattern>
     </encoder>
   </appender>
 
-  <root level="INFO">
+  <root level="ERROR">
     <appender-ref ref="STDOUT" />
   </root>
   
-  <logger name="org.springframework.web.method.support.InvocableHandlerMethod" level="TRACE">
+  <logger name="org.hibernate.SQL" level="TRACE">
   	<appender-ref ref="FILE" />
-    <appender-ref ref="STDOUT" />
+  </logger>
+
+  <logger name="org.hibernate.type" level="TRACE">
+  	<appender-ref ref="FILE" />
   </logger>
 
   <logger name="com.prm" level="TRACE">
   	<appender-ref ref="FILE" />
-    <appender-ref ref="STDOUT" />
   </logger>
   
 </configuration>
