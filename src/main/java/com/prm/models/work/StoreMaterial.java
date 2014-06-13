@@ -22,8 +22,7 @@ public class StoreMaterial {
 	private float quantity;
 	private String unit;
 	@Column(name="signed_date")
-	@Temporal(TemporalType.DATE)
-	private Date signedDate;
+	private Long signedDate;
 	@Column(name="signed_uid")
 	private Long signedUid;
 	public long getId() {
@@ -62,10 +61,10 @@ public class StoreMaterial {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public Date getSignedDate() {
+	public Long getSignedDate() {
 		return signedDate;
 	}
-	public void setSignedDate(Date signedDate) {
+	public void setSignedDate(Long signedDate) {
 		this.signedDate = signedDate;
 	}
 	public Long getSignedUid() {

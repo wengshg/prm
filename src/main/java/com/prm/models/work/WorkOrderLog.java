@@ -21,8 +21,7 @@ public class WorkOrderLog {
 	private int sequence;
 	private int status;
 	@Column(name="created_time")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date createdTime;
+	private Long createdTime;
 	@Column(name="created_uid")
 	private Long createdUid;
 	public long getWid() {
@@ -55,10 +54,10 @@ public class WorkOrderLog {
 	public void setStatus(int status) {
 		this.status = status;
 	}
-	public Date getCreatedTime() {
+	public Long getCreatedTime() {
 		return createdTime;
 	}
-	public void setCreatedTime(Date createdTime) {
+	public void setCreatedTime(Long createdTime) {
 		this.createdTime = createdTime;
 	}
 	public Long getCreatedUid() {
