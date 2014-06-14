@@ -21,8 +21,8 @@ import com.prm.resources.work.WorkOrderMaterialRepository;
 import com.prm.resources.work.WorkOrderRepository;
 
 @Service
-public class WorkOrderServiceImpl implements WorkOrderService {
-	private static Logger logger = LoggerFactory.getLogger(WorkOrderServiceImpl.class);
+public class PrmServiceImpl implements PrmService {
+	private static Logger logger = LoggerFactory.getLogger(PrmServiceImpl.class);
 	
 	@Autowired
 	WorkOrderRepository workOrderRepository;

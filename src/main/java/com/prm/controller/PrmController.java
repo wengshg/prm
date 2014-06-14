@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.prm.models.work.WorkOrder;
 import com.prm.models.work.WorkOrderContainer;
-import com.prm.service.WorkOrderService;
+import com.prm.service.PrmService;
 
 @RestController
-public class WorkOrderController {
+public class PrmController {
 	@Autowired
-	WorkOrderService workOrderService;
+	PrmService workOrderService;
 
 	@RequestMapping(value = "/workorders", method = RequestMethod.POST)
 	@ResponseBody
