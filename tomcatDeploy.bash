@@ -13,3 +13,5 @@ rm -rf ${CATALINA_HOME}/logs/*
 rm -rf ${CATALINA_HOME}/webapps/prm*
 cp build/libs/prm*.war ${CATALINA_HOME}/webapps/prm.war
 startup.sh
+sleep 5s
+tail -f ${CATALINA_HOME}/logs/catalina.out
