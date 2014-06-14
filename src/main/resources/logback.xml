@@ -1,5 +1,5 @@
 <configuration debug="true"> 
-  <substitutionProperty name="log.base" value="../logs/prm" />
+  <property name="log.base" value="../logs/prm" />
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
     <!-- encoders are  by default assigned the type
          ch.qos.logback.classic.encoder.PatternLayoutEncoder -->

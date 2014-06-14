@@ -43,7 +43,7 @@ public class PrmController {
 	@RequestMapping(value = "/workordercontainers/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void patch(@PathVariable long id,
+	public void patch(@PathVariable Long id,
 			@RequestBody WorkOrderContainer workOrderContainer,
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrderContainer.setId(id);
