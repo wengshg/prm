@@ -10,7 +10,7 @@ import com.prm.resources.PrmRepository;
 
 @RepositoryRestResource(collectionResourceRel="line", path = "line")
 public interface LineRepository extends PrmRepository<Line, Long> {
-	List<Line> findByEnable(@Param("enable") int enable);
+	List<Line> findByEnable(@Param("enable") Integer enable);
 	
 	Line findByCode(@Param("code") String code);
 

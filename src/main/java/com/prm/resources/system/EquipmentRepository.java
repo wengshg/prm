@@ -11,7 +11,7 @@ import com.prm.resources.PrmRepository;
 
 @RepositoryRestResource(collectionResourceRel = "equipment", path = "equipment")
 public interface EquipmentRepository extends PrmRepository<Equipment, Long> {
-	List<Equipment> findByEnable(@Param("enable") int enable);
+	List<Equipment> findByEnable(@Param("enable") Integer enable);
 	
 	Equipment findByCode(@Param("code") String code);
 
@@ -23,7 +23,7 @@ public interface EquipmentRepository extends PrmRepository<Equipment, Long> {
 	 * @param type
 	 * @return
 	 */
-	List<Equipment> findByLidAndType(@Param("lid")long lid, @Param("type")String type);
+	List<Equipment> findByLidAndType(@Param("lid")Long lid, @Param("type")String type);
 	
 	
 }

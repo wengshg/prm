@@ -9,36 +9,36 @@ import javax.persistence.Id;
 public class ProcessFlow {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long bid;
-	private long lid;
-	private long pid;
+	private Long id;
+	private Long bid;
+	private Long lid;
+	private Long pid;
 	private String code;
 	private String name;
 	private String type;
-	private int enable;
-	public long getId() {
+	private Integer enable;
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	public long getBid() {
+	public Long getBid() {
 		return bid;
 	}
-	public void setBid(long bid) {
+	public void setBid(Long bid) {
 		this.bid = bid;
 	}
-	public long getLid() {
+	public Long getLid() {
 		return lid;
 	}
-	public void setLid(long lid) {
+	public void setLid(Long lid) {
 		this.lid = lid;
 	}
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
 	public String getCode() {
@@ -59,10 +59,10 @@ public class ProcessFlow {
 	public void setType(String type) {
 		this.type = type;
 	}
-	public int getEnable() {
+	public Integer getEnable() {
 		return enable;
 	}
-	public void setEnable(int enable) {
+	public void setEnable(Integer enable) {
 		this.enable = enable;
 	}
 

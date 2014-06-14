@@ -10,78 +10,78 @@ import javax.persistence.Id;
 public class WorkOrderContainer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long wid;
-	private long mid;
-	private long fid;
-	private long bid;
-	private long lid;
-	private long pid;
-	private long eid;
-	private long gid;
-	private float total;
-	private int sequence;
-	private float quantity;
+	private Long id;
+	private Long wid;
+	private Long mid;
+	private Long fid;
+	private Long bid;
+	private Long lid;
+	private Long pid;
+	private Long eid;
+	private Long gid;
+	private Float total;
+	private Integer sequence;
+	private Float quantity;
 	private String unit;
-	private int status;
-	public long getWid() {
+	private Integer status;
+	public Long getWid() {
 		return wid;
 	}
-	public void setWid(long wid) {
+	public void setWid(Long wid) {
 		this.wid = wid;
 	}
-	public long getMid() {
+	public Long getMid() {
 		return mid;
 	}
-	public void setMid(long mid) {
+	public void setMid(Long mid) {
 		this.mid = mid;
 	}
-	public long getFid() {
+	public Long getFid() {
 		return fid;
 	}
-	public void setFid(long fid) {
+	public void setFid(Long fid) {
 		this.fid = fid;
 	}
-	public long getBid() {
+	public Long getBid() {
 		return bid;
 	}
-	public void setBid(long bid) {
+	public void setBid(Long bid) {
 		this.bid = bid;
 	}
-	public long getLid() {
+	public Long getLid() {
 		return lid;
 	}
-	public void setLid(long lid) {
+	public void setLid(Long lid) {
 		this.lid = lid;
 	}
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
-	public long getEid() {
+	public Long getEid() {
 		return eid;
 	}
-	public void setEid(long eid) {
+	public void setEid(Long eid) {
 		this.eid = eid;
 	}
-	public long getGid() {
+	public Long getGid() {
 		return gid;
 	}
-	public void setGid(long gid) {
+	public void setGid(Long gid) {
 		this.gid = gid;
 	}
-	public float getTotal() {
+	public Float getTotal() {
 		return total;
 	}
-	public void setTotal(float total) {
+	public void setTotal(Float total) {
 		this.total = total;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
 	public String getUnit() {
@@ -90,22 +90,22 @@ public class WorkOrderContainer {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public int getStatus() {
+	public Integer getStatus() {
 		return status;
 	}
-	public void setStatus(int status) {
+	public void setStatus(Integer status) {
 		this.status = status;
 	}
-	public int getSequence() {
+	public Integer getSequence() {
 		return sequence;
 	}
-	public void setSequence(int sequence) {
+	public void setSequence(Integer sequence) {
 		this.sequence = sequence;
 	}
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

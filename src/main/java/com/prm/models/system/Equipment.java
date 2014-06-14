@@ -9,22 +9,22 @@ import javax.persistence.Id;
 public class Equipment {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long lid;
+	private Long id;
+	private Long lid;
 	private String code;
 	private String name;
 	private String type;
-	private int enable;
-	public long getId() {
+	private Integer enable;
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	public long getLid() {
+	public Long getLid() {
 		return lid;
 	}
-	public void setLid(long lid) {
+	public void setLid(Long lid) {
 		this.lid = lid;
 	}
 	public String getCode() {
@@ -39,10 +39,10 @@ public class Equipment {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public int getEnable() {
+	public Integer getEnable() {
 		return enable;
 	}
-	public void setEnable(int enable) {
+	public void setEnable(Integer enable) {
 		this.enable = enable;
 	}
 	public String getType() {

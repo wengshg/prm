@@ -10,60 +10,60 @@ import javax.persistence.Id;
 public class ProcessFlowItem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long fid;
-	private long bid;
-	private long lid;
-	private long pid;
-	private long mid;
-	private int sequence;
-	private int interval;
+	private Long id;
+	private Long fid;
+	private Long bid;
+	private Long lid;
+	private Long pid;
+	private Long mid;
+	private Integer sequence;
+	private Integer Integererval;
 	@Column(name="eqpt_type")
 	private String eqptType;
 	@Column(name="gate_type")
 	private String gateType;
-	private int enable;
-	public long getFid() {
+	private Integer enable;
+	public Long getFid() {
 		return fid;
 	}
-	public void setFid(long fid) {
+	public void setFid(Long fid) {
 		this.fid = fid;
 	}
-	public long getBid() {
+	public Long getBid() {
 		return bid;
 	}
-	public void setBid(long bid) {
+	public void setBid(Long bid) {
 		this.bid = bid;
 	}
-	public long getLid() {
+	public Long getLid() {
 		return lid;
 	}
-	public void setLid(long lid) {
+	public void setLid(Long lid) {
 		this.lid = lid;
 	}
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
-	public long getMid() {
+	public Long getMid() {
 		return mid;
 	}
-	public void setMid(long mid) {
+	public void setMid(Long mid) {
 		this.mid = mid;
 	}
-	public int getSequence() {
+	public Integer getSequence() {
 		return sequence;
 	}
-	public void setSequence(int sequence) {
+	public void setSequence(Integer sequence) {
 		this.sequence = sequence;
 	}
-	public int getInterval() {
-		return interval;
+	public Integer getIntegererval() {
+		return Integererval;
 	}
-	public void setInterval(int interval) {
-		this.interval = interval;
+	public void setIntegererval(Integer Integererval) {
+		this.Integererval = Integererval;
 	}
 	public String getEqptType() {
 		return eqptType;
@@ -77,16 +77,16 @@ public class ProcessFlowItem {
 	public void setGateType(String gateType) {
 		this.gateType = gateType;
 	}
-	public int getEnable() {
+	public Integer getEnable() {
 		return enable;
 	}
-	public void setEnable(int enable) {
+	public void setEnable(Integer enable) {
 		this.enable = enable;
 	}
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

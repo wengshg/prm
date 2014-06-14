@@ -1,46 +1,42 @@
 package com.prm.models.work;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 @Entity(name="store_material")
 public class StoreMaterial {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long mid;
-	private long rid;
+	private Long id;
+	private Long mid;
+	private Long rid;
 	@Column(name="original_code")
 	private String originalCode;
-	private float quantity;
+	private Float quantity;
 	private String unit;
 	@Column(name="signed_date")
 	private Long signedDate;
 	@Column(name="signed_uid")
 	private Long signedUid;
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	public long getMid() {
+	public Long getMid() {
 		return mid;
 	}
-	public void setMid(long mid) {
+	public void setMid(Long mid) {
 		this.mid = mid;
 	}
-	public long getRid() {
+	public Long getRid() {
 		return rid;
 	}
-	public void setRid(long rid) {
+	public void setRid(Long rid) {
 		this.rid = rid;
 	}
 	public String getOriginalCode() {
@@ -49,10 +45,10 @@ public class StoreMaterial {
 	public void setOriginalCode(String originalCode) {
 		this.originalCode = originalCode;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
 	public String getUnit() {

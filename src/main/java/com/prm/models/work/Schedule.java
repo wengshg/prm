@@ -15,14 +15,14 @@ import javax.persistence.TemporalType;
 public class Schedule {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
+	private Long id;
 	
-	private long fid;
-	private long bid;
-	private long lid;
-	private long pid;
+	private Long fid;
+	private Long bid;
+	private Long lid;
+	private Long pid;
 	private String code;
-	private float quantity;
+	private Float quantity;
 	private String unit;
 	@Column(name="schd_sdate", nullable=false)
 	private Long schdStartDate;
@@ -36,34 +36,35 @@ public class Schedule {
 	private Long apprTime;
 	@Column(name="appr_uid")
 	private Long apprUid;
-	public long getId() {
+	
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	public long getFid() {
+	public Long getFid() {
 		return fid;
 	}
-	public void setFid(long fid) {
+	public void setFid(Long fid) {
 		this.fid = fid;
 	}
-	public long getBid() {
+	public Long getBid() {
 		return bid;
 	}
-	public void setBid(long bid) {
+	public void setBid(Long bid) {
 		this.bid = bid;
 	}
-	public long getLid() {
+	public Long getLid() {
 		return lid;
 	}
-	public void setLid(long lid) {
+	public void setLid(Long lid) {
 		this.lid = lid;
 	}
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
 	public String getCode() {
@@ -72,10 +73,10 @@ public class Schedule {
 	public void setCode(String code) {
 		this.code = code;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
 	public String getUnit() {

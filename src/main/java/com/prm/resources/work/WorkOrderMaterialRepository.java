@@ -25,5 +25,5 @@ public interface WorkOrderMaterialRepository extends
 	 * @param mid
 	 * @return
 	 */
-	List<WorkOrderMaterial> findByWidAndMid(@Param("wid") long wid, @Param("mid") long mid);
+	List<WorkOrderMaterial> findByWidAndMid(@Param("wid") Long wid, @Param("mid") Long mid);
 }

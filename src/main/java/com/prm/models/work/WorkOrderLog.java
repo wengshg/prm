@@ -1,57 +1,53 @@
 package com.prm.models.work;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 @Entity(name="workorder_log")
 public class WorkOrderLog {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long wid;
-	private long mid;
-	private long uid;
-	private int sequence;
-	private int status;
+	private Long id;
+	private Long wid;
+	private Long mid;
+	private Long uid;
+	private Integer sequence;
+	private Integer status;
 	@Column(name="created_time")
 	private Long createdTime;
 	@Column(name="created_uid")
 	private Long createdUid;
-	public long getWid() {
+	public Long getWid() {
 		return wid;
 	}
-	public void setWid(long wid) {
+	public void setWid(Long wid) {
 		this.wid = wid;
 	}
-	public long getMid() {
+	public Long getMid() {
 		return mid;
 	}
-	public void setMid(long mid) {
+	public void setMid(Long mid) {
 		this.mid = mid;
 	}
-	public long getUid() {
+	public Long getUid() {
 		return uid;
 	}
-	public void setUid(long uid) {
+	public void setUid(Long uid) {
 		this.uid = uid;
 	}
-	public int getSequence() {
+	public Integer getSequence() {
 		return sequence;
 	}
-	public void setSequence(int sequence) {
+	public void setSequence(Integer sequence) {
 		this.sequence = sequence;
 	}
-	public int getStatus() {
+	public Integer getStatus() {
 		return status;
 	}
-	public void setStatus(int status) {
+	public void setStatus(Integer status) {
 		this.status = status;
 	}
 	public Long getCreatedTime() {
@@ -66,10 +62,10 @@ public class WorkOrderLog {
 	public void setCreatedUid(Long createdUid) {
 		this.createdUid = createdUid;
 	}
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

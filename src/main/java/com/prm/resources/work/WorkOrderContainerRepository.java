@@ -18,5 +18,5 @@ public interface WorkOrderContainerRepository extends
 	 * @param mid
 	 * @return
 	 */
-	List<WorkOrderContainer> findByWidAndMid(@Param("wid") long wid, @Param("mid") long mid);
+	List<WorkOrderContainer> findByWidAndMid(@Param("wid") Long wid, @Param("mid") Long mid);
 }

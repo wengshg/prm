@@ -10,35 +10,35 @@ import javax.persistence.Id;
 public class BomItem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long bid;
-	private long mid;
-	private long pid;
+	private Long id;
+	private Long bid;
+	private Long mid;
+	private Long pid;
 	private Float tolerance;
-	private float quantity;
+	private Float quantity;
 	private String unit;
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	public long getMid() {
+	public Long getMid() {
 		return mid;
 	}
-	public void setMid(long mid) {
+	public void setMid(Long mid) {
 		this.mid = mid;
 	}
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
 	public String getUnit() {
@@ -47,10 +47,10 @@ public class BomItem {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public long getBid() {
+	public Long getBid() {
 		return bid;
 	}
-	public void setBid(long bid) {
+	public void setBid(Long bid) {
 		this.bid = bid;
 	}
 	public Float getTolerance() {

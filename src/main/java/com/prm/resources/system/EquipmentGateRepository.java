@@ -11,7 +11,7 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "equipmentgate", path = "equipmentgate")
 public interface EquipmentGateRepository extends
 		PrmRepository<EquipmentGate, Long> {
-	List<EquipmentGate> findByLidAndType(@Param("lid")long lid, @Param("type")String type);
+	List<EquipmentGate> findByLidAndType(@Param("lid")Long lid, @Param("type")String type);
 	
-	List<EquipmentGate> findByEidAndType(@Param("eid")long eid, @Param("type")String type);
+	List<EquipmentGate> findByEidAndType(@Param("eid")Long eid, @Param("type")String type);
 }

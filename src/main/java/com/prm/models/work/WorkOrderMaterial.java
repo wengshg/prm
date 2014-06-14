@@ -10,40 +10,40 @@ import javax.persistence.Id;
 public class WorkOrderMaterial {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long wid;
-	private long mid;
+	private Long id;
+	private Long wid;
+	private Long mid;
 	@Column(name="actl_total")
-	private float actTotal;
+	private Float actTotal;
 	@Column(name="actl_quantity")
-	private float actQuantity;
-	private float quantity;
+	private Float actQuantity;
+	private Float quantity;
 	@Column(name="container_qty")
-	private int containerQty;
+	private Integer containerQty;
 	private String unit;
-	private int status;
-	public long getWid() {
+	private Integer status;
+	public Long getWid() {
 		return wid;
 	}
-	public void setWid(long wid) {
+	public void setWid(Long wid) {
 		this.wid = wid;
 	}
-	public long getMid() {
+	public Long getMid() {
 		return mid;
 	}
-	public void setMid(long mid) {
+	public void setMid(Long mid) {
 		this.mid = mid;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
-	public int getContainerQty() {
+	public Integer getContainerQty() {
 		return containerQty;
 	}
-	public void setContainerQty(int containerQty) {
+	public void setContainerQty(Integer containerQty) {
 		this.containerQty = containerQty;
 	}
 	public String getUnit() {
@@ -52,28 +52,28 @@ public class WorkOrderMaterial {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public int getStatus() {
+	public Integer getStatus() {
 		return status;
 	}
-	public void setStatus(int status) {
+	public void setStatus(Integer status) {
 		this.status = status;
 	}
-	public float getActTotal() {
+	public Float getActTotal() {
 		return actTotal;
 	}
-	public void setActTotal(float actTotal) {
+	public void setActTotal(Float actTotal) {
 		this.actTotal = actTotal;
 	}
-	public float getActQuantity() {
+	public Float getActQuantity() {
 		return actQuantity;
 	}
-	public void setActQuantity(float actQuantity) {
+	public void setActQuantity(Float actQuantity) {
 		this.actQuantity = actQuantity;
 	}
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

@@ -9,18 +9,18 @@ import javax.persistence.Id;
 public class Bom {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long pid;
+	private Long id;
+	private Long pid;
 	private String code;
 	private String name;
-	private float quantity;
-	private float tolerance;
+	private Float quantity;
+	private Float tolerance;
 	private String unit;
 	private int enable;
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
 	public String getCode() {
@@ -35,16 +35,16 @@ public class Bom {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
-	public float getTolerance() {
+	public Float getTolerance() {
 		return tolerance;
 	}
-	public void setTolerance(float tolerance) {
+	public void setTolerance(Float tolerance) {
 		this.tolerance = tolerance;
 	}
 	public String getUnit() {
@@ -59,10 +59,10 @@ public class Bom {
 	public void setEnable(int enable) {
 		this.enable = enable;
 	}
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

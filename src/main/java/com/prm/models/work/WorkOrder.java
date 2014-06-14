@@ -16,61 +16,61 @@ import com.prm.models.listener.WorkOrderListener;
 public class WorkOrder {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private long sid = 0L;
-	private long fid;
-	private long bid;
-	private long lid;
-	private long pid;
+	private Long id;
+	private Long sid = 0L;
+	private Long fid;
+	private Long bid;
+	private Long lid;
+	private Long pid;
 	private String code;
-	private int sequence;
-	private float quantity;
+	private Integer sequence;
+	private Float quantity;
 	private String unit;
 	@Column(name="work_sdate")
 	private Long workStartDate;
 	@Column(name="work_edate")
 	private Long workEndDate;
-	private int status;
+	private Integer status;
 	@Column(name="owner_uid")
-	private long ownerUid;
+	private Long ownerUid;
 	@Column(name="weighing_uid")
 	private Long weighingUid;
 	@Column(name="operator_uid")
 	private Long operatorUid;
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	public long getSid() {
+	public Long getSid() {
 		return sid;
 	}
-	public void setSid(long sid) {
+	public void setSid(Long sid) {
 		this.sid = sid;
 	}
-	public long getFid() {
+	public Long getFid() {
 		return fid;
 	}
-	public void setFid(long fid) {
+	public void setFid(Long fid) {
 		this.fid = fid;
 	}
-	public long getBid() {
+	public Long getBid() {
 		return bid;
 	}
-	public void setBid(long bid) {
+	public void setBid(Long bid) {
 		this.bid = bid;
 	}
-	public long getLid() {
+	public Long getLid() {
 		return lid;
 	}
-	public void setLid(long lid) {
+	public void setLid(Long lid) {
 		this.lid = lid;
 	}
-	public long getPid() {
+	public Long getPid() {
 		return pid;
 	}
-	public void setPid(long pid) {
+	public void setPid(Long pid) {
 		this.pid = pid;
 	}
 	public String getCode() {
@@ -79,16 +79,16 @@ public class WorkOrder {
 	public void setCode(String code) {
 		this.code = code;
 	}
-	public int getSequence() {
+	public Integer getSequence() {
 		return sequence;
 	}
-	public void setSequence(int sequence) {
+	public void setSequence(Integer sequence) {
 		this.sequence = sequence;
 	}
-	public float getQuantity() {
+	public Float getQuantity() {
 		return quantity;
 	}
-	public void setQuantity(float quantity) {
+	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
 	}
 	public String getUnit() {
@@ -109,16 +109,16 @@ public class WorkOrder {
 	public void setWorkEndDate(Long workEndDate) {
 		this.workEndDate = workEndDate;
 	}
-	public int getStatus() {
+	public Integer getStatus() {
 		return status;
 	}
-	public void setStatus(int status) {
+	public void setStatus(Integer status) {
 		this.status = status;
 	}
-	public long getOwnerUid() {
+	public Long getOwnerUid() {
 		return ownerUid;
 	}
-	public void setOwnerUid(long ownerUid) {
+	public void setOwnerUid(Long ownerUid) {
 		this.ownerUid = ownerUid;
 	}
 	public Long getWeighingUid() {

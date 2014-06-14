@@ -6,7 +6,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -15,7 +14,7 @@ import javax.validation.constraints.Size;
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
+	private Long id;
 	@NotNull
 	@Size(min=2, max=64)
 	@Column(unique=true, nullable=false)
@@ -34,7 +33,7 @@ public class User {
 	private String role;
 	@Column
 	private String memo;
-	private int enable;
+	private Integer enable;
 	public String getUsername() {
 		return username;
 	}
@@ -71,16 +70,16 @@ public class User {
 	public void setMemo(String memo) {
 		this.memo = memo;
 	}
-	public int getEnable() {
+	public Integer getEnable() {
 		return enable;
 	}
-	public void setEnable(int enable) {
+	public void setEnable(Integer enable) {
 		this.enable = enable;
 	}
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	

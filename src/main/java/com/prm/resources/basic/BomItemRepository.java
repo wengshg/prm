@@ -11,5 +11,5 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "bomitem", path = "bomitem")
 public interface BomItemRepository extends PrmRepository<BomItem, Long> {
 	
-	List<BomItem> findByBid(@Param("bid") long bid);
+	List<BomItem> findByBid(@Param("bid") Long bid);
 }
