@@ -18,6 +18,7 @@ public class WorkOrderMaterial {
 	@Column(name="actl_quantity")
 	private Float actQuantity;
 	private Float quantity;
+	private Float tolerance;
 	@Column(name="container_qty")
 	private Integer containerQty;
 	private String unit;
@@ -75,6 +76,12 @@ public class WorkOrderMaterial {
 	}
 	public void setId(Long id) {
 		this.id = id;
+	}
+	public Float getTolerance() {
+		return tolerance;
+	}
+	public void setTolerance(Float tolerance) {
+		this.tolerance = tolerance;
 	}
 
 }

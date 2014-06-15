@@ -1,5 +1,6 @@
 package com.prm.service;
 
+import java.util.Calendar;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -8,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.prm.Exception.PrmRuntimeException;
 import com.prm.models.basic.Bom;
 import com.prm.models.basic.BomItem;
 import com.prm.models.work.WorkOrder;
 import com.prm.models.work.WorkOrderContainer;
+import com.prm.models.work.WorkOrderLog;
 import com.prm.models.work.WorkOrderMaterial;
 import com.prm.resources.basic.BomItemRepository;
 import com.prm.resources.basic.BomRepository;
@@ -44,9 +47,10 @@ public class PrmServiceImpl implements PrmService {
 	
 	@Transactional
 	@Override
-	public WorkOrder create(WorkOrder workOrder) {
+	public WorkOrder create(Long uid, WorkOrder workOrder) {
 		WorkOrder swo = workOrderRepository.save(workOrder);
 		if (swo != null) {
+			//start with workorder_material
 			Bom bom = bomRepository.findOne(swo.getBid());
 			Float bomQty = bom.getQuantity();
 			List<BomItem> bomItems = bomItemRepository.findByBid(swo.getBid());
@@ -67,29 +71,118 @@ public class PrmServiceImpl implements PrmService {
 					logger.info("Saved work order material: " + savedWOM.getId());
 				}
 			}
+			
+			//Add WorkOrderLog
+			generateLog(uid, swo);
 		}
 		return swo;
 	}
-
+	
+	private void generateLog(Long uid, WorkOrder workOrder) {
+		WorkOrderLog log = new WorkOrderLog();
+		log.setStatus(workOrder.getStatus());
+		log.setUid(uid);
+		log.setWid(workOrder.getId());
+		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
+		workOrderLogRepository.save(log);
+	}
+	
+	private void generateLog(Long uid, WorkOrderMaterial workOrderMaterial) {
+		WorkOrderLog log = new WorkOrderLog();
+		log.setStatus(workOrderMaterial.getStatus());
+		log.setUid(uid);
+		log.setWid(workOrderMaterial.getWid());
+		log.setMid(workOrderMaterial.getWid());
+		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
+		workOrderLogRepository.save(log);
+	}
+	
+	/**
+	 * 1. Create a WorkOrderContainer
+	 * 2. Update WorkOrderMaterial 3 fields (actQantity, actTotal, containerQty)
+	 * 3. Create a WorkOrderLog.
+	 */
 	@Transactional
 	@Override
-	public WorkOrderContainer create(WorkOrderContainer workOrderContainer) {
+	public WorkOrderContainer create(Long uid, WorkOrderContainer workOrderContainer) {
+		Float ctnTotal = workOrderContainer.getTotal();
+		Float cntQuty = workOrderContainer.getQuantity();
 		WorkOrderContainer woc = workOrderContainerRepository.save(workOrderContainer);
 		if (woc != null) {
-			//TODO
+			//update workordermaterial
+			Long wid = woc.getWid();
+			Long mid = woc.getMid();
+			List<WorkOrderMaterial> woms = workOrderMaterialRepository.findByWidAndMid(wid, mid);
+			if (woms == null || woms.size() != 1) {
+				throw new PrmRuntimeException("WorkOrderMaterial find issue, key of wid: " + wid + ", mid: " + mid);
+			}
 			
+			WorkOrderMaterial wom = woms.get(0);
+			Long womId = wom.getId();
+			workOrderMaterialRepository.addMaterialContainer(womId, ctnTotal, cntQuty);
 			
+			//Add workorderlog.
+			generateLog(uid, woc);
 		}
 		return woc;
 	}
+	
+	private void generateLog(Long uid, WorkOrderContainer workOrderContainer) {
+		WorkOrderLog log = new WorkOrderLog();
+		log.setMid(workOrderContainer.getMid());
+		log.setSequence(workOrderContainer.getSequence());
+		log.setStatus(workOrderContainer.getStatus());
+		log.setUid(uid);
+		log.setWid(workOrderContainer.getWid());
+		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
+		workOrderLogRepository.save(log);
+	}
 
 	@Override
-	public void update(WorkOrderContainer workOrderContainer) {
-		WorkOrderContainer woc = workOrderContainerRepository.save(workOrderContainer);
-		if (woc != null) {
-			//TODO
+	public void update(Long uid, WorkOrderContainer workOrderContainer) {
+		if (workOrderContainer.getStatus() == null) {
+			throw new PrmRuntimeException("WorkOrderContainer.status is null.");
+		}
+		Long id = workOrderContainer.getId();
+		WorkOrderContainer wocDB = workOrderContainerRepository.findOne(id);
+		if (wocDB != null) {
+			wocDB.setStatus(workOrderContainer.getStatus());
+			workOrderContainerRepository.save(wocDB);
 			
+			//Add workorderlog
+			generateLog(uid, wocDB);
+		}
+	}
+
+	@Override
+	public void update(Long uid, WorkOrderMaterial workOrderMaterial) {
+		if (workOrderMaterial.getStatus() == null) {
+			throw new PrmRuntimeException("WorkOrderMaterial.status is null.");
+		}
+		Long id = workOrderMaterial.getId();
+		WorkOrderMaterial womDB = workOrderMaterialRepository.findOne(id);
+		if (womDB != null) {
+			womDB.setStatus(workOrderMaterial.getStatus());
+			workOrderMaterialRepository.save(womDB);
 			
+			//Add workorderlog
+			generateLog(uid, womDB);
+		}
+	}
+
+	@Override
+	public void update(Long uid, WorkOrder workOrder) {
+		if (workOrder.getStatus() == null) {
+			throw new PrmRuntimeException("WorkOrder.status is null.");
+		}
+		Long id = workOrder.getId();
+		WorkOrder woDB = workOrderRepository.findOne(id);
+		if (woDB != null) {
+			woDB.setStatus(workOrder.getStatus());
+			workOrderRepository.save(woDB);
+			
+			//Add workorderlog
+			generateLog(uid, woDB);
 		}
 	}
 

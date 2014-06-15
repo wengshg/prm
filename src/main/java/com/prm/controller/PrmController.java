@@ -9,45 +9,112 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.prm.models.work.WorkOrder;
 import com.prm.models.work.WorkOrderContainer;
+import com.prm.models.work.WorkOrderMaterial;
 import com.prm.service.PrmService;
 
 @RestController
 public class PrmController {
 	@Autowired
 	PrmService workOrderService;
-
+	
+	/**
+	 * Create a new WorkOrder.
+	 * 
+	 * @param uid
+	 * @param workOrder
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value = "/workorders", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
-	public void create(@RequestBody WorkOrder workOrder,
+	public void create(@RequestParam Long uid, @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
-		WorkOrder saved = workOrderService.create(workOrder);
-		response.setHeader("Location", request.getRequestURI() + "/" + saved.getId());
-	}
-
-	@RequestMapping(value = "/workordercontainers", method = RequestMethod.POST)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.CREATED)
-	public void create(@RequestBody WorkOrderContainer workOrderContainer,
-			HttpServletRequest request, HttpServletResponse response) {
-		WorkOrderContainer saved = workOrderService.create(workOrderContainer);
+		WorkOrder saved = workOrderService.create(uid, workOrder);
 		response.setHeader("Location", request.getRequestURI() + "/" + saved.getId());
 	}
 	
+	/**
+	 * Create a new WorkOrderContainer.
+	 * 
+	 * @param uid
+	 * @param workOrderContainer
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/workordercontainers", method = RequestMethod.POST)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.CREATED)
+	public void create(@RequestParam Long uid, @RequestBody WorkOrderContainer workOrderContainer,
+			HttpServletRequest request, HttpServletResponse response) {
+		WorkOrderContainer saved = workOrderService.create(uid, workOrderContainer);
+		response.setHeader("Location", request.getRequestURI() + "/" + saved.getId());
+	}
+	
+	/**
+	 * Update status of WorkOrder.
+	 * 
+	 * @param uid
+	 * @param id
+	 * @param workOrderContainer
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/workorders/{id}", method = RequestMethod.PATCH)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void patch(@RequestParam Long uid, @PathVariable Long id,
+			@RequestBody WorkOrder workOrder,
+			HttpServletRequest request, HttpServletResponse response) {
+		workOrder.setId(id);
+		workOrderService.update(uid, workOrder);
+		response.setHeader("Location", request.getRequestURI() + "/" + id);
+	}
+		
+	/**
+	 * Update status of WorkOrderContainer.
+	 * 
+	 * @param uid
+	 * @param id
+	 * @param workOrderContainer
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value = "/workordercontainers/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void patch(@PathVariable Long id,
+	public void patch(@RequestParam Long uid, @PathVariable Long id,
 			@RequestBody WorkOrderContainer workOrderContainer,
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrderContainer.setId(id);
-		workOrderService.update(workOrderContainer);
+		workOrderService.update(uid, workOrderContainer);
+		response.setHeader("Location", request.getRequestURI() + "/" + id);
+	}
+		
+	/**
+	 * Update status of WorkOrderMaterial.
+	 * 
+	 * @param uid
+	 * @param id
+	 * @param workOrderContainer
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/workordermaterials/{id}", method = RequestMethod.PATCH)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void patch(@RequestParam Long uid, @PathVariable Long id,
+			@RequestBody WorkOrderMaterial workOrderMaterial,
+			HttpServletRequest request, HttpServletResponse response) {
+		workOrderMaterial.setId(id);
+		workOrderService.update(uid, workOrderMaterial);
 		response.setHeader("Location", request.getRequestURI() + "/" + id);
 	}
 
