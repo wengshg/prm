@@ -17,7 +17,7 @@ public class ProcessFlowItem {
 	private Long pid;
 	private Long mid;
 	private Integer sequence;
-	private Integer Integererval;
+	private Integer interval;
 	@Column(name="eqpt_type")
 	private String eqptType;
 	@Column(name="gate_type")
@@ -59,11 +59,11 @@ public class ProcessFlowItem {
 	public void setSequence(Integer sequence) {
 		this.sequence = sequence;
 	}
-	public Integer getIntegererval() {
-		return Integererval;
+	public Integer getInterval() {
+		return interval;
 	}
-	public void setIntegererval(Integer Integererval) {
-		this.Integererval = Integererval;
+	public void setInterval(Integer interval) {
+		this.interval = interval;
 	}
 	public String getEqptType() {
 		return eqptType;
