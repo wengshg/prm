@@ -38,7 +38,7 @@ public class PrmController {
 	public void create(@RequestParam Long uid, @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrder saved = workOrderService.create(uid, workOrder);
-		response.setHeader("Location", request.getRequestURI() + "/" + saved.getId());
+		response.setHeader("Location", request.getRequestURL() + "/" + saved.getId());
 	}
 	
 	/**
@@ -55,7 +55,7 @@ public class PrmController {
 	public void create(@RequestParam Long uid, @RequestBody WorkOrderContainer workOrderContainer,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrderContainer saved = workOrderService.create(uid, workOrderContainer);
-		response.setHeader("Location", request.getRequestURI() + "/" + saved.getId());
+		response.setHeader("Location", request.getRequestURL() + "/" + saved.getId());
 	}
 	
 	/**
@@ -75,9 +75,9 @@ public class PrmController {
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrder.setId(id);
 		workOrderService.update(uid, workOrder);
-		response.setHeader("Location", request.getRequestURI() + "/" + id);
+		response.setHeader("Location", request.getRequestURL().toString());
 	}
-		
+	
 	/**
 	 * Update status of WorkOrderContainer.
 	 * 
@@ -95,7 +95,7 @@ public class PrmController {
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrderContainer.setId(id);
 		workOrderService.update(uid, workOrderContainer);
-		response.setHeader("Location", request.getRequestURI() + "/" + id);
+		response.setHeader("Location", request.getRequestURL().toString());
 	}
 		
 	/**
@@ -115,7 +115,7 @@ public class PrmController {
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrderMaterial.setId(id);
 		workOrderService.update(uid, workOrderMaterial);
-		response.setHeader("Location", request.getRequestURI() + "/" + id);
+		response.setHeader("Location", request.getRequestURL().toString());
 	}
 
 }
