@@ -11,7 +11,15 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "workordercontainer", path = "workordercontainer")
 public interface WorkOrderContainerRepository extends
 		PrmRepository<WorkOrderContainer, Long> {
-
+	
+	/**
+	 * find by wid
+	 * 
+	 * @param wid
+	 * @return
+	 */
+	List<WorkOrderContainer> findByWid(@Param("wid") Long wid);
+	
 	/**
 	 * find by wid and mid
 	 * 
@@ -23,19 +31,12 @@ public interface WorkOrderContainerRepository extends
 			@Param("mid") Long mid);
 
 	/**
-	 * find by wid
-	 * 
-	 * @param wid
-	 * @return
-	 */
-	List<WorkOrderContainer> findByWidOrderByMidAsc(@Param("wid") Long wid);
-
-	/**
 	 * find by wid, mid and sequence
 	 * 
 	 * @param wid
 	 * @return
 	 */
 	List<WorkOrderContainer> findByWidAndMidAndSequence(@Param("wid") Long wid,
-			@Param("mid") Long mid, @Param("sequence") String sequence);
+			@Param("mid") Long mid, @Param("sequence") Integer sequence);
+
 }

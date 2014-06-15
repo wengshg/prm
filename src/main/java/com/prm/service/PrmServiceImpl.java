@@ -81,7 +81,7 @@ public class PrmServiceImpl implements PrmService {
 	private void generateLog(Long uid, WorkOrder workOrder) {
 		WorkOrderLog log = new WorkOrderLog();
 		log.setStatus(workOrder.getStatus());
-		log.setUid(uid);
+		log.setCreatedUid(uid);
 		log.setWid(workOrder.getId());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);
@@ -90,7 +90,7 @@ public class PrmServiceImpl implements PrmService {
 	private void generateLog(Long uid, WorkOrderMaterial workOrderMaterial) {
 		WorkOrderLog log = new WorkOrderLog();
 		log.setStatus(workOrderMaterial.getStatus());
-		log.setUid(uid);
+		log.setCreatedUid(uid);
 		log.setWid(workOrderMaterial.getWid());
 		log.setMid(workOrderMaterial.getWid());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
@@ -132,7 +132,7 @@ public class PrmServiceImpl implements PrmService {
 		log.setMid(workOrderContainer.getMid());
 		log.setSequence(workOrderContainer.getSequence());
 		log.setStatus(workOrderContainer.getStatus());
-		log.setUid(uid);
+		log.setCreatedUid(uid);
 		log.setWid(workOrderContainer.getWid());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);

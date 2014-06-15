@@ -12,8 +12,10 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "workorder", path = "workorder")
 public interface WorkOrderRepository extends PrmRepository<WorkOrder, Long> {
 	
+	List<WorkOrder> findByCode(@Param("code") String code);
+	
 	@Query("select o from workorder o where o.workStartDate <= :date and o.workEndDate >= :date")
-	List<WorkOrder> findByDT(@Param("date") Long date);
+	List<WorkOrder> findByDate(@Param("date") Long date);
 	
 
 }

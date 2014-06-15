@@ -35,8 +35,8 @@ public interface WorkOrderMaterialRepository extends
 	 * @param quantity
 	 */
 	@Modifying
-	@Query(value="update WorkOrderMaterial o set o.actTotal = o.actTotal + :total, " +
-			" o.actQuantity = o.actQuantity + :quantity, o.containerQty = o.containerQty + 1 " +
+	@Query(value="update workorder_material set actl_total = actl_total + :total, " +
+			" actl_quantity = actl_quantity + :quantity, container_qty = container_qty + 1 " +
 			" where id = :id", nativeQuery=true)
 	void addMaterialContainer(@Param("id") Long id, @Param("total") Float total, @Param("quantity") Float quantity);
 }
