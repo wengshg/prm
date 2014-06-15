@@ -4,7 +4,9 @@
 # 1. set the variable of CATALINA_HOME
 # 2. set path to CATALIHA bin.
 #
-git pull origin master
+if [[ "$1" == "up" ]];then
+   git pull origin master
+fi
 
 gradle -b build.war.gradle clean build
 shutdown.sh
