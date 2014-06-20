@@ -100,12 +100,15 @@ public class PrmServiceImpl implements PrmService {
 			for (BomItem bomItem : bomItems) {
 				WorkOrderMaterial wom = new WorkOrderMaterial();
 				Float biQty = bomItem.getQuantity();
-				Float qty = woQty * (biQty / bomQty);
+				Float biTorn = bomItem.getTolerance();
+				Float qty = biQty * ( woQty / bomQty);
+				Float torn = biTorn * ( woQty / bomQty);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Qty of material: " + bomItem.getMid()
 							+ ", for WorkOrder: " + swo.getId() + "is : " + qty);
 				}
 				wom.setQuantity(qty);
+				wom.setTolerance(torn);
 				wom.setMid(bomItem.getMid());
 				wom.setUnit(bomItem.getUnit());
 				wom.setWid(swo.getId());

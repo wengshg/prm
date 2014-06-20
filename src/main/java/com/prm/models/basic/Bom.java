@@ -14,7 +14,6 @@ public class Bom {
 	private String code;
 	private String name;
 	private Float quantity = 0F;
-	private Float tolerance = 0F;
 	private String unit;
 	private Integer enable;
 	public Long getPid() {
@@ -40,12 +39,6 @@ public class Bom {
 	}
 	public void setQuantity(Float quantity) {
 		this.quantity = quantity;
-	}
-	public Float getTolerance() {
-		return tolerance;
-	}
-	public void setTolerance(Float tolerance) {
-		this.tolerance = tolerance;
 	}
 	public String getUnit() {
 		return unit;

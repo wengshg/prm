@@ -100,7 +100,6 @@ CREATE TABLE bom (
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
     quantity float,
-    tolerance float,
     unit varchar(8),
     enable tinyint
 );
