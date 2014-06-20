@@ -1,4 +1,4 @@
-<configuration debug="true"> 
+<configuration> 
   <property name="log.base" value="../logs/prm" />
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
     <!-- encoders are  by default assigned the type
@@ -14,7 +14,7 @@
         <FileNamePattern>${log.base}.%d{yyyy-MM-dd}.log.zip</FileNamePattern>
     </rollingPolicy>
     <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <MaxFileSize>20MB</MaxFileSize>
+        <MaxFileSize>1MB</MaxFileSize>
     </triggeringPolicy>
     <encoder>
       <pattern>%date %level [%thread] %-5level %logger{36} %msg%n</pattern>

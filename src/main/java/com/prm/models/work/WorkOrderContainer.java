@@ -23,7 +23,7 @@ public class WorkOrderContainer {
 	private Integer sequence;
 	private Float quantity;
 	private String unit;
-	private Integer status;
+	private Integer status = 0;
 	public Long getWid() {
 		return wid;
 	}

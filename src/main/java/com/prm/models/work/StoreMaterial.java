@@ -1,5 +1,7 @@
 package com.prm.models.work;
 
+import java.util.Calendar;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,10 +17,10 @@ public class StoreMaterial {
 	private Long rid;
 	@Column(name="original_code")
 	private String originalCode;
-	private Float quantity;
+	private Float quantity = 0F;
 	private String unit;
 	@Column(name="signed_date")
-	private Long signedDate;
+	private Long signedDate = Calendar.getInstance().getTimeInMillis();
 	@Column(name="signed_uid")
 	private Long signedUid;
 	public Long getId() {

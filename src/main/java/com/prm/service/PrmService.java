@@ -38,6 +38,6 @@ public interface PrmService {
 	 * @param uid
 	 * @param workOrder
 	 */
-	void update(Long uid, WorkOrder workOrder);
+	void update(Long uid, WorkOrder workOrder, boolean cascade);
 
 }

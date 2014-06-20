@@ -24,7 +24,7 @@ public class WorkOrder {
 	private Long pid;
 	private String code;
 	private Integer sequence;
-	private Float quantity;
+	private Float quantity = 0F;
 	private String unit;
 	@Column(name="work_sdate")
 	private Long workStartDate;

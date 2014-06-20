@@ -14,15 +14,15 @@ public class WorkOrderMaterial {
 	private Long wid;
 	private Long mid;
 	@Column(name="actl_total")
-	private Float actTotal;
+	private Float actTotal = 0F;
 	@Column(name="actl_quantity")
-	private Float actQuantity;
-	private Float quantity;
-	private Float tolerance;
+	private Float actQuantity = 0F;
+	private Float quantity = 0F;
+	private Float tolerance = 0F;
 	@Column(name="container_qty")
-	private Integer containerQty;
+	private Integer containerQty = 0;
 	private String unit;
-	private Integer status;
+	private Integer status = 0;
 	public Long getWid() {
 		return wid;
 	}

@@ -11,15 +11,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
+import com.prm.dao.PrmJdbcDao;
 import com.prm.models.report.WorkOrderContainerRpt;
 
 @Component
-public class ReportDaoImpl implements ReportDao {
+public class ReportDaoImpl extends PrmJdbcDao implements ReportDao {
 
 	private Logger logger = LoggerFactory.getLogger(ReportDaoImpl.class);
-	
-	@Autowired
-	private JdbcTemplate jt;
 	
 	public List<WorkOrderContainerRpt> getWorkOrderContainerRpt(Long wid, Long gid, Integer status) {
 		Object[] params = null;
@@ -39,7 +37,7 @@ public class ReportDaoImpl implements ReportDao {
 		sql.append("group by mid order by mid ");
 		String sqlString = sql.toString();
 		
-		loggerSQL(sqlString, params);
+		loggerSQL(logger, sqlString, params);
 		
 		List<WorkOrderContainerRpt> rpts = jt.query(sqlString, params,
 				new RowMapper<WorkOrderContainerRpt>() {
@@ -55,16 +53,5 @@ public class ReportDaoImpl implements ReportDao {
 		return rpts;
 	}
 
-	private void loggerSQL(String sql, Object[] params) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sql of getWorkOrderContainerRpt: " + sql);
-			if (params != null) {
-				logger.debug("Sql Parameters: ");
-				for (Object obj : params) {
-					logger.debug(obj.toString());
-				}
-			}
-		}
-	}
 
 }

@@ -15,7 +15,7 @@ public class WorkOrderLog {
 	private Long mid;
 	private Long uid;
 	private Integer sequence;
-	private Integer status;
+	private Integer status = 0;
 	@Column(name="created_time")
 	private Long createdTime;
 	@Column(name="created_uid")

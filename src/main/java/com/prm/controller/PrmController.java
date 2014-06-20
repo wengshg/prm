@@ -70,11 +70,11 @@ public class PrmController {
 	@RequestMapping(value = "/workorders/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void patch(@RequestParam Long uid, @PathVariable Long id,
-			@RequestBody WorkOrder workOrder,
+	public void patch(@RequestParam Long uid, @RequestParam(required=false, defaultValue="true") boolean cascade,
+			@PathVariable Long id, @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrder.setId(id);
-		workOrderService.update(uid, workOrder);
+		workOrderService.update(uid, workOrder, cascade);
 		response.setHeader("Location", request.getRequestURL().toString());
 	}
 	

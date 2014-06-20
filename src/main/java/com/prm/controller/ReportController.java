@@ -27,15 +27,17 @@ public class ReportController {
 	@RequestMapping(value = "/report/workordercontainer", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public Map<String, List<WorkOrderContainerRpt>> create(
+	public Map<String, Map<String, List<WorkOrderContainerRpt>>> create(
 			@RequestParam Long wid, @RequestParam Long gid,
 			@RequestParam(required=false) Integer status, HttpServletRequest request,
 			HttpServletResponse response) {
 		List<WorkOrderContainerRpt> rpts = reportService
 				.getWorkOrderContainerRpt(wid, gid, status);
 		response.setHeader("Location", request.getRequestURL().toString() + "?" + request.getQueryString());
-		Map<String, List<WorkOrderContainerRpt>> retVal = new HashMap<String, List<WorkOrderContainerRpt>>();
-		retVal.put("_embeded", rpts);
+		Map<String, List<WorkOrderContainerRpt>> rptMap = new HashMap<String, List<WorkOrderContainerRpt>>();
+		rptMap.put("workordercontainerRpt", rpts);
+		Map<String, Map<String, List<WorkOrderContainerRpt>>> retVal = new HashMap<String, Map<String, List<WorkOrderContainerRpt>>>();
+		retVal.put("_embedded", rptMap);
 		return retVal;
 	}
 
