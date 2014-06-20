@@ -10,5 +10,7 @@ public interface WorkOrderContainerDao {
 	 * @param status
 	 * @return
 	 */
-	boolean isAllContainersStatusAs(Long wid, Long mid, Integer status);
+	boolean isAllContainersStatusAs(Long wid, Long mid, int status);
+	
+	
 }

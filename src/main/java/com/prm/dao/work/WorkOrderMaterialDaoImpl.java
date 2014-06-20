@@ -5,26 +5,23 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.prm.dao.PrmJdbcDao;
 
 @Component
-public class WorkOrderContainerDaoImpl extends PrmJdbcDao implements WorkOrderContainerDao {
-
-	private Logger logger = LoggerFactory.getLogger(WorkOrderContainerDaoImpl.class);
+public class WorkOrderMaterialDaoImpl extends PrmJdbcDao implements WorkOrderMaterialDao {
+	private Logger logger = LoggerFactory.getLogger(WorkOrderMaterialDaoImpl.class);
 	
 	@Override
-	public boolean isAllContainersStatusAs(Long wid, Long mid, int status) {
+	public boolean isAllMaterialsStatusAS(Long wid, int status) {
 		boolean retVal = false;
-		
-		Object[] args = {wid, mid};
-		int[] argTypes = {java.sql.Types.BIGINT, java.sql.Types.BIGINT};
-		String sql = "select status, count(*) cnt from workorder_container where wid=? and mid=? group by status ";
+
+		Object[] args = {wid};
+		int[] argTypes = {java.sql.Types.BIGINT};
+		String sql = "select status, count(*) cnt from workorder_material where wid=? group by status ";
 		loggerSQL(logger, sql, args);
-		
+
 		List<Map<String, Object>> result = jt.queryForList(sql, args, argTypes);
 		if (result != null) {
 			if (result.size() == 1) {
@@ -32,7 +29,7 @@ public class WorkOrderContainerDaoImpl extends PrmJdbcDao implements WorkOrderCo
 				int statusFromDB = (int)oneRec.get("status");
 				if (status == statusFromDB) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("All containers under workorder material of wid: " + wid + ", mid: " + mid + " are in status of " + status + ".");
+						logger.debug("All materials under workorder of " + wid + " are in status of " + status + ".");
 					}
 					retVal = true;
 				} else {
@@ -47,7 +44,7 @@ public class WorkOrderContainerDaoImpl extends PrmJdbcDao implements WorkOrderCo
 			}
 		} else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Invalid of query criterial, wid: " + wid + ", mid: " + mid + ".");
+				logger.debug("Invalid of query criterial, wid: " + wid + ".");
 			}
 		}
 		

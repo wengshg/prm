@@ -14,8 +14,8 @@ public class BomItem {
 	private Long bid;
 	private Long mid;
 	private Long pid;
-	private Float tolerance;
-	private Float quantity;
+	private Float tolerance = 0F;
+	private Float quantity = 0F;
 	private String unit;
 	public Long getId() {
 		return id;

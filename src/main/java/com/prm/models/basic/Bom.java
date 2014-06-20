@@ -13,10 +13,10 @@ public class Bom {
 	private Long pid;
 	private String code;
 	private String name;
-	private Float quantity;
-	private Float tolerance;
+	private Float quantity = 0F;
+	private Float tolerance = 0F;
 	private String unit;
-	private int enable;
+	private Integer enable;
 	public Long getPid() {
 		return pid;
 	}
@@ -53,10 +53,10 @@ public class Bom {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
-	public int getEnable() {
+	public Integer getEnable() {
 		return enable;
 	}
-	public void setEnable(int enable) {
+	public void setEnable(Integer enable) {
 		this.enable = enable;
 	}
 	public Long getId() {

@@ -1,5 +1,8 @@
 package com.prm.service;
 
+import java.util.List;
+
+import com.prm.models.basic.BomItem;
 import com.prm.models.work.WorkOrder;
 import com.prm.models.work.WorkOrderContainer;
 import com.prm.models.work.WorkOrderMaterial;
@@ -39,5 +42,13 @@ public interface PrmService {
 	 * @param workOrder
 	 */
 	void update(Long uid, WorkOrder workOrder, boolean cascade);
+	
+	/**
+	 * return the estimated materials base on the bom id and quantity.
+	 * @param bid
+	 * @param quantity
+	 * @return
+	 */
+	List<BomItem> getEstimatedMaterials(Long bid, Float quantity);
 
 }
