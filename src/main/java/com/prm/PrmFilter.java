@@ -29,8 +29,8 @@ public class PrmFilter implements Filter {
 		if (logger.isDebugEnabled()) {
 			startTime = Calendar.getInstance().getTimeInMillis();
 		}
-		chain.doFilter(req, res);
 		setCorsHeaders(res);
+		chain.doFilter(req, res);
 		
 		if (logger.isDebugEnabled()) {
 			HttpServletRequest httpReq = (HttpServletRequest) req;

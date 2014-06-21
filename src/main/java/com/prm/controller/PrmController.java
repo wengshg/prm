@@ -123,7 +123,26 @@ public class PrmController {
 		response.setHeader("Location", request.getRequestURL().toString());
 	}
 
+	/**
+	 * Update status of WorkOrderMaterial.
+	 * 
+	 * @param uid
+	 * @param id
+	 * @param workOrderContainer
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/workordermaterials", method = RequestMethod.PATCH)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void patch(@RequestParam Long uid, @RequestParam Long wid, @RequestParam Long mid,
+			@RequestBody WorkOrderMaterial workOrderMaterial,
+			HttpServletRequest request, HttpServletResponse response) {
+		prmService.update(uid, workOrderMaterial, wid, mid);
+		response.setHeader("Location", request.getRequestURL().toString());
+	}
 
+	
 	/**
 	 * Update status of WorkOrderMaterial.
 	 * 

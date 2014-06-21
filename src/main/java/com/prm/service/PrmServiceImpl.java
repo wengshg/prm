@@ -204,35 +204,34 @@ public class PrmServiceImpl implements PrmService {
 	}
 
 	/**
+	 * workOrderMaterial: includes workOrderMaterialID and status.
 	 * Here separated into 2 different transactions. (material and workorder)
 	 */
 	@Override
 	public void update(Long uid, WorkOrderMaterial workOrderMaterial) {
 		Integer status = workOrderMaterial.getStatus();
-		if (status == null) {
-			throw new PrmRuntimeException("WorkOrderMaterial.status is null.");
-		}
 		Long id = workOrderMaterial.getId();
 		WorkOrderMaterial womDB = workOrderMaterialRepository.findOne(id);
-		if (womDB != null) {
-			womDB.setStatus(status);
-
-			commitSave(uid, womDB);
-			
-			//update cascade table of work_order
-			if (status.intValue() == STATUS_ALLOCATED) {
-				if (workOrderMaterialDao.isAllMaterialsStatusAS(womDB.getWid(), status.intValue())) {
-					WorkOrder woDB = workOrderRepository.findOne(id);
-					if (status.intValue() != woDB.getStatus().intValue()) {
-						woDB.setStatus(status);
-						
-						commitSave(uid, woDB);
-					}
-				}
-			}
-		}
+		updateStatus(uid, womDB, workOrderMaterial.getStatus());
 	}
+	
+	/**
+	 * workOrderMaterial: include status, without workOrderMaterialID.
+	 * Here separated into 2 different transactions. (material and workorder)
+	 */
+	@Override
+	public void update(Long uid, WorkOrderMaterial workOrderMaterial, Long wid,
+			Long mid) {
+		List<WorkOrderMaterial> woms = workOrderMaterialRepository.findByWidAndMid(wid, mid);
+		if (woms != null && woms.size() == 1) {
+			WorkOrderMaterial wom = woms.get(0);
+			updateStatus(uid, wom, workOrderMaterial.getStatus());
+		} else {
+			throw new PrmRuntimeException("Invalid wid: " + wid + " or mid: " + mid + ".");
+		}
 		
+	}
+
 	/**
 	 * Here separated into 3 different transactions. (container, material and workorder)
 	 */
@@ -252,7 +251,6 @@ public class PrmServiceImpl implements PrmService {
 				commitSave(uid, wocDB);
 
 				//check if this is to update the final record.
-				//TODO
 				if (chkIfUpdateUpChain(status.intValue(), wocDB)) {
 					//save workordermaterial
 					Long wid = wocDB.getWid();
@@ -289,6 +287,36 @@ public class PrmServiceImpl implements PrmService {
 		}
 	}
 
+	
+	
+	private void updateStatus(Long uid, WorkOrderMaterial womDB, Integer newStatus) {
+		if (newStatus == null) {
+			throw new PrmRuntimeException("WorkOrderMaterial.status is null.");
+		}
+		if (womDB != null) {
+			womDB.setStatus(newStatus);
+
+			commitSave(uid, womDB);
+			
+			//update cascade table of work_order
+			if (newStatus.intValue() == STATUS_ALLOCATED) {
+				if (workOrderMaterialDao.isAllMaterialsStatusAS(womDB.getWid(), newStatus.intValue())) {
+					WorkOrder woDB = workOrderRepository.findOne(womDB.getWid());
+					if (newStatus.intValue() != woDB.getStatus().intValue()) {
+						woDB.setStatus(newStatus);
+						
+						commitSave(uid, woDB);
+					}
+				}
+			}
+		}
+		
+	}
+
+	
+	
+	
+	
 	
 	private boolean chkIfUpdateUpChain(int reqStatus, WorkOrderContainer woc) {
 		boolean retVal = false;

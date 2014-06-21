@@ -39,6 +39,15 @@ public interface PrmService {
 	/**
 	 * Currently only support status updating.
 	 * @param uid
+	 * @param workOrderMaterial
+	 * @param wid
+	 * @param mid
+	 */
+	void update(Long uid, WorkOrderMaterial workOrderMaterial, Long wid, Long mid);
+
+	/**
+	 * Currently only support status updating.
+	 * @param uid
 	 * @param workOrder
 	 */
 	void update(Long uid, WorkOrder workOrder, boolean cascade);
