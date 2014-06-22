@@ -14,6 +14,15 @@ public interface PrmService {
 	 * @return
 	 */
 	WorkOrder create(Long uid, WorkOrder workOrder);
+	
+	/**
+	 * 	 * Only just created workorder can be deleted.
+	 * delete the workorder and meanwhile delete the cascade talbes 
+	 * includes workordercontainer, workordermaterial and workorderlog.
+	 * @param wid
+	 * @return
+	 */
+	void delete(Long wid);
 
 	/**
 	 * 

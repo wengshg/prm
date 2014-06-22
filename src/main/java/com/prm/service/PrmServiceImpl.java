@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.prm.Exception.PrmRuntimeException;
 import com.prm.dao.work.WorkOrderContainerDao;
+import com.prm.dao.work.WorkOrderLogDao;
 import com.prm.dao.work.WorkOrderMaterialDao;
 import com.prm.models.basic.Bom;
 import com.prm.models.basic.BomItem;
@@ -29,7 +30,8 @@ import com.prm.resources.work.WorkOrderRepository;
 public class PrmServiceImpl implements PrmService {
 	private static Logger logger = LoggerFactory
 			.getLogger(PrmServiceImpl.class);
-
+	
+	private static final int CREATED = 0;
 	//workorder -> workordermaterial
 	private static final int STATUS_APPROVED = 1;
 	//workorder <- workordermaterial 
@@ -66,6 +68,9 @@ public class PrmServiceImpl implements PrmService {
 	
 	@Autowired
 	private WorkOrderMaterialDao workOrderMaterialDao;
+	
+	@Autowired
+	private WorkOrderLogDao workOrderLogDao;
 	
 	
 	/**
@@ -167,39 +172,13 @@ public class PrmServiceImpl implements PrmService {
 	 */
 	@Transactional
 	public void update(Long uid, WorkOrder workOrder, boolean cascade) {
-		if (workOrder.getStatus() == null) {
-			throw new PrmRuntimeException("WorkOrder.status is null.");
-		}
-		Long id = workOrder.getId();
-		Integer status = workOrder.getStatus();
-		WorkOrder woDB = workOrderRepository.findOne(id);
-		if (woDB != null) {
-			if (cascade && chkIfUpdateDownChain(status.intValue(), woDB.getStatus().intValue())) {
-//				if (status.intValue() <= woDB.getStatus().intValue()) {
-//					throw new PrmRuntimeException("Status is not allowed to update for this workorder.");
-//				}
-				List<WorkOrderMaterial> woms = workOrderMaterialRepository
-						.findByWid(id);
-				for (WorkOrderMaterial wom : woms) {
-					Long mid = wom.getMid();
-					if (status.intValue() != STATUS_APPROVED) {
-						List<WorkOrderContainer> wocs = workOrderContainerRepository
-								.findByWidAndMid(id, mid);
-						for (WorkOrderContainer woc : wocs) {
-							woc.setStatus(status);
-	
-							saveWithLog(uid, woc);
-						}
-					}
-					wom.setStatus(status);
-
-					saveWithLog(uid, wom);
-				}
-			}
-			
-			woDB.setStatus(status);
-			
-			saveWithLog(uid, woDB);
+		if (uid != null && workOrder.getStatus() != null) {
+			updateStatus(uid, workOrder, cascade);
+		} else if (workOrder.getStatus() == null) {
+			updateNonStatus(workOrder);
+		} else if (uid == null) {
+			//status not null
+			throw new PrmRuntimeException("Missing parameter of uid.");
 		}
 	}
 
@@ -212,7 +191,7 @@ public class PrmServiceImpl implements PrmService {
 		Integer status = workOrderMaterial.getStatus();
 		Long id = workOrderMaterial.getId();
 		WorkOrderMaterial womDB = workOrderMaterialRepository.findOne(id);
-		updateStatus(uid, womDB, workOrderMaterial.getStatus());
+		updateStatus(uid, womDB, status);
 	}
 	
 	/**
@@ -259,7 +238,9 @@ public class PrmServiceImpl implements PrmService {
 							.findByWidAndMid(wid, mid);
 					if (woms != null && woms.size() == 1) {
 						WorkOrderMaterial wom = woms.get(0);
-						if (status.intValue() != wom.getStatus().intValue() ) {
+						if (wom != null && wom.getStatus() != null
+								&& status.intValue() != wom.getStatus().intValue()) {
+							
 							wom.setStatus(status);
 							
 							commitSave(uid, wom);
@@ -267,8 +248,9 @@ public class PrmServiceImpl implements PrmService {
 						if (workOrderMaterialDao.isAllMaterialsStatusAS(wid, status)) {
 							//save workorder
 							WorkOrder workOrder = workOrderRepository.findOne(wid);
-							if (workOrder != null) {
+							if (workOrder != null && workOrder.getStatus() != null) {
 								if (status.intValue() != workOrder.getStatus().intValue()) {
+									
 									workOrder.setStatus(status);
 									
 									commitSave(uid, workOrder);
@@ -287,13 +269,75 @@ public class PrmServiceImpl implements PrmService {
 		}
 	}
 
+	/**
+	 * Only just created workorder can be deleted.
+	 */
+	@Transactional
+	@Override
+	public void delete(Long wid) {
+		WorkOrder workOrder = workOrderRepository.findOne(wid);
+		Integer status = workOrder.getStatus();
+		if (status.intValue() != CREATED) {
+			throw new PrmRuntimeException("This workorder can not be deleted, as it's status is: " + status);
+		}
+		workOrderLogDao.delete(wid);
+		workOrderContainerDao.delete(wid);
+//		workOrderMaterialDao.delete(wid);
+		workOrderRepository.delete(wid);
+	}
+
+	private void updateNonStatus(WorkOrder workOrder) {
+		
+	}
+	
+	private void updateStatus(Long uid, WorkOrder workOrder, boolean cascade) {
+		Long id = workOrder.getId();
+		Integer status = workOrder.getStatus();
+		WorkOrder woDB = workOrderRepository.findOne(id);
+		if (woDB != null) {
+			if (cascade && chkIfUpdateDownChain(status.intValue(), woDB.getStatus().intValue())) {
+//				if (status.intValue() <= woDB.getStatus().intValue()) {
+//					throw new PrmRuntimeException("Status is not allowed to update for this workorder.");
+//				}
+				List<WorkOrderMaterial> woms = workOrderMaterialRepository
+						.findByWid(id);
+				for (WorkOrderMaterial wom : woms) {
+					Long mid = wom.getMid();
+					if (status.intValue() != STATUS_APPROVED) {
+						List<WorkOrderContainer> wocs = workOrderContainerRepository
+								.findByWidAndMid(id, mid);
+						for (WorkOrderContainer woc : wocs) {
+							woc.setStatus(status);
+	
+							saveWithLog(uid, woc);
+						}
+					}
+					wom.setStatus(status);
+
+					saveWithLog(uid, wom);
+				}
+			}
+			
+			woDB.setStatus(status);
+			
+			saveWithLog(uid, woDB);
+		}
+	}
 	
 	
 	private void updateStatus(Long uid, WorkOrderMaterial womDB, Integer newStatus) {
 		if (newStatus == null) {
 			throw new PrmRuntimeException("WorkOrderMaterial.status is null.");
 		}
+		if (newStatus.intValue() > STATUS_ALLOCATED) {
+			throw new PrmRuntimeException("Not allowed to change the status to: " + newStatus );
+		}
+
 		if (womDB != null) {
+			if (womDB.getStatus().intValue() > STATUS_APPROVED) {
+				throw new PrmRuntimeException("Not allowed to be changed, as it's status is : " + womDB.getStatus() );
+			}			
+			
 			womDB.setStatus(newStatus);
 
 			commitSave(uid, womDB);

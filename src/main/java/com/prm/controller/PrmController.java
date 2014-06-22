@@ -47,6 +47,21 @@ public class PrmController {
 	}
 	
 	/**
+	 * Remove a WorkOrder
+	 * @param uid
+	 * @param workOrder
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/workorders", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable Long id, 
+			HttpServletRequest request, HttpServletResponse response) {
+		prmService.delete(id);
+	}
+	
+	
+	/**
 	 * Create a new WorkOrderContainer.
 	 * 
 	 * @param uid
@@ -75,7 +90,7 @@ public class PrmController {
 	@RequestMapping(value = "/workorders/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void patch(@RequestParam Long uid, @RequestParam(required=false, defaultValue="true") boolean cascade,
+	public void patch(@RequestParam(required=false) Long uid, @RequestParam(required=false, defaultValue="true") boolean cascade,
 			@PathVariable Long id, @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrder.setId(id);

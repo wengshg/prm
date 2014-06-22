@@ -7,6 +7,11 @@ public interface WorkOrderMaterialDao {
 	 * @param status
 	 * @return
 	 */
-	boolean isAllMaterialsStatusAS(Long wid, int status);
+	boolean isAllMaterialsStatusAS(Long wid, Integer status);
 
+	/**
+	 * Remove all the records related to the workorder id.
+	 * @param wid
+	 */
+	void delete(Long wid);
 }

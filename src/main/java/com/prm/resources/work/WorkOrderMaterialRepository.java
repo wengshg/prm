@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.data.rest.core.annotation.RestResource;
 
 import com.prm.models.work.WorkOrderMaterial;
 import com.prm.resources.PrmRepository;
@@ -13,6 +14,13 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "workordermaterial", path = "workordermaterial")
 public interface WorkOrderMaterialRepository extends
 		PrmRepository<WorkOrderMaterial, Long> {
+	
+	@RestResource(exported = false)
+	WorkOrderMaterial save(WorkOrderMaterial wom);
+
+	@RestResource(exported = false)
+	void delete(Long id);
+	
 	/**
 	 * Search by workorder ID.
 	 * @param wid
@@ -34,6 +42,7 @@ public interface WorkOrderMaterialRepository extends
 	 * @param total
 	 * @param quantity
 	 */
+	@RestResource(exported = false)
 	@Modifying
 	@Query(value="update workorder_material set actl_total = actl_total + :total, " +
 			" actl_quantity = actl_quantity + :quantity, container_qty = container_qty + 1 " +

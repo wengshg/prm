@@ -10,7 +10,11 @@ public interface WorkOrderContainerDao {
 	 * @param status
 	 * @return
 	 */
-	boolean isAllContainersStatusAs(Long wid, Long mid, int status);
+	boolean isAllContainersStatusAs(Long wid, Long mid, Integer status);
 	
-	
+	/**
+	 * Remove all the records related to the workorder id.
+	 * @param wid
+	 */
+	void delete(Long wid);
 }

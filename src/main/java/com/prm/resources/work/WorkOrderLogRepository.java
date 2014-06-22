@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.stereotype.Repository;
 
 import com.prm.models.work.WorkOrderLog;
@@ -12,6 +13,13 @@ import com.prm.resources.PrmRepository;
 @RepositoryRestResource(collectionResourceRel = "workorderlog", path = "workorderlog")
 public interface WorkOrderLogRepository extends
 		PrmRepository<WorkOrderLog, Long> {
+	
+	@RestResource(exported = false)
+	WorkOrderLog save(WorkOrderLog wol);
+
+	@RestResource(exported = false)
+	void delete(Long id);
+
 	/**
 	 * Search the log for containers.
 	 * 

@@ -30,7 +30,7 @@ public class WorkOrder {
 	private Long workStartDate;
 	@Column(name="work_edate")
 	private Long workEndDate;
-	private Integer status;
+	private Integer status = 0;
 	@Column(name="owner_uid")
 	private Long ownerUid;
 	@Column(name="weighing_uid")

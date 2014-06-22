@@ -8,7 +8,9 @@ if [[ "$1" == "up" ]];then
    git pull origin master
 fi
 
-gradle -b build.war.gradle clean build
+if [[ "$1" != "nocompile" ]];then
+	gradle -b build.war.gradle clean build
+fi
 shutdown.sh
 sleep 5s
 rm -rf ${CATALINA_HOME}/logs/*
