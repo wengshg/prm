@@ -40,6 +40,10 @@ public class WorkOrderContainerDaoImpl extends PrmJdbcDao implements WorkOrderCo
 			}
 		});
 		
+		if (logger.isDebugEnabled()) {
+			logger.debug("sql result: " + result);
+		}
+		
 		if (result.intValue() == 0) {
 			retVal = true;
 		}

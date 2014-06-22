@@ -102,7 +102,7 @@ public class PrmServiceImpl implements PrmService {
 		}
 		WorkOrder woDB = workOrderRepository.save(workOrder);
 		if (woDB != null) {
-			genWorkOrderMaterials(woDB);
+			genWorkOrderMaterials(uid, woDB);
 			// Add WorkOrderLog
 			generateLog(uid, woDB);
 		}
@@ -152,10 +152,10 @@ public class PrmServiceImpl implements PrmService {
 	 */
 	@Transactional
 	public void update(Long uid, WorkOrder workOrder, boolean cascade) {
-		if (uid != null && workOrder.getStatus() != null) {
+		if (uid != null && workOrder.getStatus().intValue() != STATUS_CREATED) {
 			updateStatus(uid, workOrder, cascade);
-		} else if (workOrder.getStatus() == null) {
-			updateNonStatus(workOrder);
+		} else if (uid != null && workOrder.getStatus() == STATUS_CREATED) {
+			updateNonStatus(uid, workOrder);
 		} else if (uid == null) {
 			//status not null
 			throw new PrmRuntimeException("Missing parameter of uid.");
@@ -163,7 +163,9 @@ public class PrmServiceImpl implements PrmService {
 	}
 
 	/**
-	 * Only accepted status is 2 (allocated) or 1 (approved).
+	 * Allow to update the status of allocated (auto update upstream), 
+	 * the status of approved, double_checked and completed (all support auto update downstream).
+	 *
 	 * workOrderMaterial: includes workOrderMaterialID and status.
 	 * Here separated into 2 different transactions. (material and workorder)
 	 */
@@ -176,21 +178,25 @@ public class PrmServiceImpl implements PrmService {
 	}
 	
 	/**
-	 * Only accepted status is 2 (allocated) or 1 (approved).
+	 * Allow to update the status of allocated (auto update upstream), 
+	 * the status of approved, double_checked and completed (all support auto update downstream).
+	 *
 	 * workOrderMaterial: include status, without workOrderMaterialID.
 	 * Here separated into 2 different transactions. (material and workorder)
 	 */
 	@Override
-	public void update(Long uid, WorkOrderMaterial workOrderMaterial, Long wid,
+	public Long update(Long uid, WorkOrderMaterial workOrderMaterial, Long wid,
 			Long mid) {
+		Long womID = null;
 		List<WorkOrderMaterial> woms = workOrderMaterialRepository.findByWidAndMid(wid, mid);
 		if (woms != null && woms.size() == 1) {
 			WorkOrderMaterial wom = woms.get(0);
+			womID = wom.getId();
 			updateStatus(uid, wom, workOrderMaterial.getStatus());
 		} else {
 			throw new PrmRuntimeException("Invalid wid: " + wid + " or mid: " + mid + ".");
 		}
-		
+		return womID;
 	}
 
 	/**
@@ -206,6 +212,9 @@ public class PrmServiceImpl implements PrmService {
 		WorkOrderContainer wocDB = workOrderContainerRepository.findOne(id);
 		if (wocDB != null) {
 			Integer originalStatus = wocDB.getStatus();
+			
+			chkIfAllowUpdateStatus(status, originalStatus, "workordercontainer");
+			
 			if (status.intValue() != originalStatus.intValue()) {
 				wocDB.setStatus(status);
 				
@@ -220,8 +229,7 @@ public class PrmServiceImpl implements PrmService {
 							.findByWidAndMid(wid, mid);
 					if (woms != null && woms.size() == 1) {
 						WorkOrderMaterial wom = woms.get(0);
-						if (wom != null && wom.getStatus() != null
-								&& status.intValue() != wom.getStatus().intValue()) {
+						if (wom != null && status.intValue() != wom.getStatus().intValue()) {
 							
 							wom.setStatus(status);
 							
@@ -230,7 +238,7 @@ public class PrmServiceImpl implements PrmService {
 						if (workOrderMaterialDao.isAllMaterialsStatusAS(wid, status)) {
 							//save workorder
 							WorkOrder workOrder = workOrderRepository.findOne(wid);
-							if (workOrder != null && workOrder.getStatus() != null) {
+							if (workOrder != null) {
 								if (status.intValue() != workOrder.getStatus().intValue()) {
 									
 									workOrder.setStatus(status);
@@ -274,7 +282,7 @@ public class PrmServiceImpl implements PrmService {
 	 * 2. update other attributes.
 	 * @param workOrder
 	 */
-	private void updateNonStatus(WorkOrder workOrder) {
+	private void updateNonStatus(Long uid, WorkOrder workOrder) {
 		Long id = workOrder.getId();
 		WorkOrder woDB = workOrderRepository.findOne(id);
 		if (woDB.getStatus().intValue() > this.STATUS_CREATED) {
@@ -288,7 +296,7 @@ public class PrmServiceImpl implements PrmService {
 			
 			workOrderRepository.save(woDB);
 			
-			genWorkOrderMaterials(woDB);
+			genWorkOrderMaterials(uid, woDB);
 		} else {
 			//no quantity and bomid changes.
 			
@@ -324,7 +332,7 @@ public class PrmServiceImpl implements PrmService {
 		if (req.getPid() != null) {
 			woDB.setPid(req.getPid());
 		}
-		if (req.getSid() != null) {
+		if (req.getSid() != 0) {
 			woDB.setSid(req.getSid());
 		}
 		if (req.getCode() != null) {
@@ -363,10 +371,8 @@ public class PrmServiceImpl implements PrmService {
 		Integer status = workOrder.getStatus();
 		WorkOrder woDB = workOrderRepository.findOne(id);
 		if (woDB != null) {
+			chkIfAllowUpdateStatus(status, woDB.getStatus(), "workorder");
 			if (cascade && chkIfUpdateDownChain(status.intValue(), woDB.getStatus().intValue())) {
-//				if (status.intValue() <= woDB.getStatus().intValue()) {
-//					throw new PrmRuntimeException("Status is not allowed to update for this workorder.");
-//				}
 				List<WorkOrderMaterial> woms = workOrderMaterialRepository
 						.findByWid(id);
 				for (WorkOrderMaterial wom : woms) {
@@ -392,26 +398,32 @@ public class PrmServiceImpl implements PrmService {
 		}
 	}
 	
-	
+	/**
+	 * Allow to update the status of allocated (auto update upstream), 
+	 * the status of approved, double_checked and completed (all support auto update downstream).
+	 * @param uid
+	 * @param womDB
+	 * @param newStatus
+	 */
 	private void updateStatus(Long uid, WorkOrderMaterial womDB, Integer newStatus) {
-		if (newStatus == null) {
-			throw new PrmRuntimeException("WorkOrderMaterial.status is null.");
-		}
-		if (newStatus.intValue() > STATUS_ALLOCATED) {
-			throw new PrmRuntimeException("Not allowed to change the status to: " + newStatus );
+		if (newStatus == STATUS_CREATED) {
+			throw new PrmRuntimeException("Requested WorkOrderMaterial.status is not allowed.");
 		}
 
 		if (womDB != null) {
-			if (womDB.getStatus().intValue() > STATUS_APPROVED) {
-				throw new PrmRuntimeException("Not allowed to be changed, as it's status is : " + womDB.getStatus() );
-			}			
+			Integer originalStatus = womDB.getStatus();
+			chkIfAllowUpdateStatus(newStatus, originalStatus, "workordermaterial");
+			
+			if (newStatus == STATUS_DREW || newStatus == STATUS_FEED) {
+				throw new PrmRuntimeException("Workordermaterial does not supporte the status: " + newStatus );
+			}
 			
 			womDB.setStatus(newStatus);
 
 			commitSave(uid, womDB);
 			
-			//update cascade table of work_order
 			if (newStatus.intValue() == STATUS_ALLOCATED) {
+				//update cascade table of work_order
 				if (workOrderMaterialDao.isAllMaterialsStatusAS(womDB.getWid(), newStatus.intValue())) {
 					WorkOrder woDB = workOrderRepository.findOne(womDB.getWid());
 					if (newStatus.intValue() != woDB.getStatus().intValue()) {
@@ -420,13 +432,22 @@ public class PrmServiceImpl implements PrmService {
 						commitSave(uid, woDB);
 					}
 				}
+			} else if (this.chkIfUpdateDownChain(newStatus, originalStatus)) {
+				//update cascade table of workorder_material
+				List<WorkOrderContainer> wocs = workOrderContainerRepository
+						.findByWidAndMid(womDB.getWid(), womDB.getWid());
+				for (WorkOrderContainer woc : wocs) {
+					woc.setStatus(newStatus);
+
+					saveWithLog(uid, woc);
+				}
 			}
 		}
 		
 	}
 
 	
-	private void genWorkOrderMaterials(WorkOrder woDB) {
+	private void genWorkOrderMaterials(Long uid, WorkOrder woDB) {
 		// start with workorder_material
 		Float woQty = woDB.getQuantity();
 		Bom bom = bomRepository.findOne(woDB.getBid());
@@ -440,7 +461,7 @@ public class PrmServiceImpl implements PrmService {
 			Float torn = biTorn * ( woQty / bomQty);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Qty of material: " + bomItem.getMid()
-						+ ", for WorkOrder: " + woDB.getId() + "is : " + qty);
+						+ ", for WorkOrder: " + woDB.getId() + " is : " + qty + ", and tolerance is: " + torn);
 			}
 			wom.setQuantity(qty);
 			wom.setTolerance(torn);
@@ -448,7 +469,7 @@ public class PrmServiceImpl implements PrmService {
 			wom.setUnit(bomItem.getUnit());
 			wom.setWid(woDB.getId());
 			
-			WorkOrderMaterial womDB = saveWithLog(woDB.getOwnerUid(), wom);
+			WorkOrderMaterial womDB = saveWithLog(uid, wom);
 			if (logger.isInfoEnabled()) {
 				logger.info("Saved work order material: " + womDB.getId());
 			}
@@ -541,7 +562,7 @@ public class PrmServiceImpl implements PrmService {
 		log.setStatus(workOrderMaterial.getStatus());
 		log.setCreatedUid(uid);
 		log.setWid(workOrderMaterial.getWid());
-		log.setMid(workOrderMaterial.getWid());
+		log.setMid(workOrderMaterial.getMid());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);
 	}
@@ -555,6 +576,26 @@ public class PrmServiceImpl implements PrmService {
 		log.setWid(workOrderContainer.getWid());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);
+	}
+	
+	private void chkIfAllowUpdateStatus(Integer reqStatus, Integer dbStatus, String target) {
+		boolean retVal = false;
+		
+		if (reqStatus != STATUS_COMPLETED) {
+			if (reqStatus == dbStatus + 1) {
+				retVal = true;
+			}
+		} else {
+			if (dbStatus == STATUS_FEED) {
+				retVal = true;
+			}
+		}
+		
+		if (retVal == false) {
+			throw new PrmRuntimeException(
+					"Status change for " + target + " is not allowed, status in db is: "
+							+ dbStatus + " and request status is: " + reqStatus);
+		}		
 	}
 		
 

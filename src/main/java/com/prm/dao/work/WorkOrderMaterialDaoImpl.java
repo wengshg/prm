@@ -36,6 +36,10 @@ public class WorkOrderMaterialDaoImpl extends PrmJdbcDao implements WorkOrderMat
 			}
 		});
 
+		if (logger.isDebugEnabled()) {
+			logger.debug("sql result: " + result);
+		}
+		
 		if (result.intValue() == 0) {
 			retVal = true;
 		}

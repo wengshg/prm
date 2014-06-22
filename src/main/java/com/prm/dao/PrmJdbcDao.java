@@ -10,7 +10,7 @@ public class PrmJdbcDao {
 
 	protected void loggerSQL(Logger logger, String sql, Object[] params) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Sql of getWorkOrderContainerRpt: " + sql);
+			logger.debug("Sql: " + sql);
 			if (params != null) {
 				logger.debug("Sql Parameters: ");
 				for (Object obj : params) {

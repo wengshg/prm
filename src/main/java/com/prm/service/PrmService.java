@@ -52,7 +52,7 @@ public interface PrmService {
 	 * @param wid
 	 * @param mid
 	 */
-	void update(Long uid, WorkOrderMaterial workOrderMaterial, Long wid, Long mid);
+	Long update(Long uid, WorkOrderMaterial workOrderMaterial, Long wid, Long mid);
 
 	/**
 	 * Currently only support status updating.

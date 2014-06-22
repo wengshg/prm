@@ -1,7 +1,9 @@
 package com.prm.dao.work;
 
-import com.prm.dao.PrmJdbcDao;
+import org.springframework.stereotype.Component;
 
+import com.prm.dao.PrmJdbcDao;
+@Component
 public class WorkOrderLogDaoImpl extends PrmJdbcDao implements WorkOrderLogDao {
 
 	@Override

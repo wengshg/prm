@@ -43,7 +43,7 @@ public class PrmController {
 	public void create(@RequestParam Long uid, @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrder saved = prmService.create(uid, workOrder);
-		response.setHeader("Location", request.getRequestURL() + "/" + saved.getId());
+		response.setHeader("Location",  delLastChar(request.getRequestURL()) + "/" + saved.getId());
 	}
 	
 	/**
@@ -75,11 +75,13 @@ public class PrmController {
 	public void create(@RequestParam Long uid, @RequestBody WorkOrderContainer workOrderContainer,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrderContainer saved = prmService.create(uid, workOrderContainer);
-		response.setHeader("Location", request.getRequestURL() + "/" + saved.getId());
+		response.setHeader("Location", delLastChar(request.getRequestURL()) + "/" + saved.getId());
 	}
 	
 	/**
-	 * Update status of WorkOrder.
+	 * Update WorkOrder:
+	 * 1. update status only.
+	 * 2. or other attributes.
 	 * 
 	 * @param uid
 	 * @param id
@@ -90,12 +92,11 @@ public class PrmController {
 	@RequestMapping(value = "/workorders/{id}", method = RequestMethod.PATCH)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void patch(@RequestParam(required=false) Long uid, @RequestParam(required=false, defaultValue="true") boolean cascade,
+	public void patch(@RequestParam Long uid, @RequestParam(required=false, defaultValue="true") boolean cascade,
 			@PathVariable Long id, @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrder.setId(id);
 		prmService.update(uid, workOrder, cascade);
-		response.setHeader("Location", request.getRequestURL().toString());
 	}
 	
 	/**
@@ -115,12 +116,14 @@ public class PrmController {
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrderContainer.setId(id);
 		prmService.update(uid, workOrderContainer);
-		response.setHeader("Location", request.getRequestURL().toString());
 	}
 		
 	/**
 	 * Update status of WorkOrderMaterial.
 	 * 
+	 * Allow to update the status of allocated (auto update upstream), 
+	 * the status of approved, double_checked and completed (all support auto update downstream).
+	 *
 	 * @param uid
 	 * @param id
 	 * @param workOrderContainer
@@ -135,12 +138,14 @@ public class PrmController {
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrderMaterial.setId(id);
 		prmService.update(uid, workOrderMaterial);
-		response.setHeader("Location", request.getRequestURL().toString());
 	}
 
 	/**
 	 * Update status of WorkOrderMaterial.
 	 * 
+	 * Allow to update the status of allocated (auto update upstream), 
+	 * the status of approved, double_checked and completed (all support auto update downstream).
+	 *
 	 * @param uid
 	 * @param id
 	 * @param workOrderContainer
@@ -153,13 +158,12 @@ public class PrmController {
 	public void patch(@RequestParam Long uid, @RequestParam Long wid, @RequestParam Long mid,
 			@RequestBody WorkOrderMaterial workOrderMaterial,
 			HttpServletRequest request, HttpServletResponse response) {
-		prmService.update(uid, workOrderMaterial, wid, mid);
-		response.setHeader("Location", request.getRequestURL().toString());
+		Long womID = prmService.update(uid, workOrderMaterial, wid, mid);
 	}
 
 	
 	/**
-	 * Update status of WorkOrderMaterial.
+	 * Get the each material quantity base on the bom.
 	 * 
 	 * @param uid
 	 * @param id
@@ -172,13 +176,19 @@ public class PrmController {
 	@ResponseStatus(HttpStatus.OK)
 	public Map<String, Map<String, List<BomItem>>> get(@RequestParam Float quantity, @PathVariable Long bid,
 			HttpServletRequest request, HttpServletResponse response) {
-		response.setHeader("Location", request.getRequestURL().toString() + "?" + request.getQueryString() );
 		List<BomItem> bomItems = prmService.getEstimatedMaterials(bid, quantity);
 		Map<String, List<BomItem>> matsMap = new HashMap<String, List<BomItem>>();
 		matsMap.put("materials", bomItems);
 		Map<String, Map<String, List<BomItem>>> retVal = new HashMap<String, Map<String, List<BomItem>>>();
 		retVal.put("_embedded", matsMap);
 		return retVal;
+	}
+	
+	private StringBuffer delLastChar(StringBuffer sb) {
+		if (sb != null) {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb;
 	}
 
 }
