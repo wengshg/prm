@@ -13,6 +13,7 @@ import com.prm.Exception.PrmRuntimeException;
 import com.prm.dao.work.WorkOrderContainerDao;
 import com.prm.dao.work.WorkOrderLogDao;
 import com.prm.dao.work.WorkOrderMaterialDao;
+import com.prm.dao.work.WorkOrderMaterialDaoImpl;
 import com.prm.models.basic.Bom;
 import com.prm.models.basic.BomItem;
 import com.prm.models.work.WorkOrder;
@@ -31,7 +32,7 @@ public class PrmServiceImpl implements PrmService {
 	private static Logger logger = LoggerFactory
 			.getLogger(PrmServiceImpl.class);
 	
-	private static final int CREATED = 0;
+	private static final int STATUS_CREATED = 0;
 	//workorder -> workordermaterial
 	private static final int STATUS_APPROVED = 1;
 	//workorder <- workordermaterial 
@@ -95,40 +96,17 @@ public class PrmServiceImpl implements PrmService {
 	@Transactional
 	@Override
 	public WorkOrder create(Long uid, WorkOrder workOrder) {
-		WorkOrder swo = workOrderRepository.save(workOrder);
-		if (swo != null) {
-			// start with workorder_material
-			Bom bom = bomRepository.findOne(swo.getBid());
-			Float bomQty = bom.getQuantity();
-			List<BomItem> bomItems = bomItemRepository.findByBid(swo.getBid());
-			Float woQty = workOrder.getQuantity();
-			for (BomItem bomItem : bomItems) {
-				WorkOrderMaterial wom = new WorkOrderMaterial();
-				Float biQty = bomItem.getQuantity();
-				Float biTorn = bomItem.getTolerance();
-				Float qty = biQty * ( woQty / bomQty);
-				Float torn = biTorn * ( woQty / bomQty);
-				if (logger.isTraceEnabled()) {
-					logger.trace("Qty of material: " + bomItem.getMid()
-							+ ", for WorkOrder: " + swo.getId() + "is : " + qty);
-				}
-				wom.setQuantity(qty);
-				wom.setTolerance(torn);
-				wom.setMid(bomItem.getMid());
-				wom.setUnit(bomItem.getUnit());
-				wom.setWid(swo.getId());
-				WorkOrderMaterial savedWOM = workOrderMaterialRepository
-						.save(wom);
-				if (logger.isInfoEnabled()) {
-					logger.info("Saved work order material: "
-							+ savedWOM.getId());
-				}
-			}
-
-			// Add WorkOrderLog
-			generateLog(uid, swo);
+		Float quantity = workOrder.getQuantity();
+		if (quantity == null) {
+			throw new PrmRuntimeException("Requested workorder quantity is not set.");
 		}
-		return swo;
+		WorkOrder woDB = workOrderRepository.save(workOrder);
+		if (woDB != null) {
+			genWorkOrderMaterials(woDB);
+			// Add WorkOrderLog
+			generateLog(uid, woDB);
+		}
+		return woDB;
 	}
 
 	/**
@@ -167,8 +145,10 @@ public class PrmServiceImpl implements PrmService {
 	}
 
 	/**
-	 * update the status with workorder, workordermaterials and workordercontainers.
+	 * Here support 2 cases:
 	 * 
+	 * 1. update the status with workorder, workordermaterials and workordercontainers.
+	 * 2. update the non-status attributes.
 	 */
 	@Transactional
 	public void update(Long uid, WorkOrder workOrder, boolean cascade) {
@@ -183,6 +163,7 @@ public class PrmServiceImpl implements PrmService {
 	}
 
 	/**
+	 * Only accepted status is 2 (allocated) or 1 (approved).
 	 * workOrderMaterial: includes workOrderMaterialID and status.
 	 * Here separated into 2 different transactions. (material and workorder)
 	 */
@@ -195,6 +176,7 @@ public class PrmServiceImpl implements PrmService {
 	}
 	
 	/**
+	 * Only accepted status is 2 (allocated) or 1 (approved).
 	 * workOrderMaterial: include status, without workOrderMaterialID.
 	 * Here separated into 2 different transactions. (material and workorder)
 	 */
@@ -277,7 +259,7 @@ public class PrmServiceImpl implements PrmService {
 	public void delete(Long wid) {
 		WorkOrder workOrder = workOrderRepository.findOne(wid);
 		Integer status = workOrder.getStatus();
-		if (status.intValue() != CREATED) {
+		if (status.intValue() != STATUS_CREATED) {
 			throw new PrmRuntimeException("This workorder can not be deleted, as it's status is: " + status);
 		}
 		workOrderLogDao.delete(wid);
@@ -286,10 +268,96 @@ public class PrmServiceImpl implements PrmService {
 		workOrderRepository.delete(wid);
 	}
 
+	/**
+	 * update the non-status.
+	 * 1. update quantity, bomid (this requires to remove the related workordermaterial, and generate it again.)
+	 * 2. update other attributes.
+	 * @param workOrder
+	 */
 	private void updateNonStatus(WorkOrder workOrder) {
-		
+		Long id = workOrder.getId();
+		WorkOrder woDB = workOrderRepository.findOne(id);
+		if (woDB.getStatus().intValue() > this.STATUS_CREATED) {
+			throw new PrmRuntimeException("Not allow to update, as its status is: " + woDB.getStatus());
+		}
+		if (chkIfNeedUpdateWorkOrderMaterialAndMerge(workOrder, woDB)) {
+			//here needs to update the workordermaterial.
+			
+			workOrderLogDao.delete(id);
+			workOrderMaterialDao.delete(id);
+			
+			workOrderRepository.save(woDB);
+			
+			genWorkOrderMaterials(woDB);
+		} else {
+			//no quantity and bomid changes.
+			
+			workOrderRepository.save(woDB);
+		}
 	}
 	
+	private boolean chkIfNeedUpdateWorkOrderMaterialAndMerge(WorkOrder req, WorkOrder woDB) {
+		boolean retVal = false;
+		// 1. check if any updates on quantity or bomid.
+		Float reqQuantity = req.getQuantity();
+		Long reqBomId = req.getBid();
+		if ((reqQuantity != null && reqQuantity.intValue() != woDB.getQuantity().intValue())
+				|| (reqBomId != null && reqBomId.longValue() != woDB.getBid().longValue())) {
+			if (reqQuantity != null) {
+				woDB.setQuantity(reqQuantity);
+			}
+			
+			if (reqBomId != null) {
+				woDB.setBid(reqBomId);
+			}
+			retVal = true;
+		}
+		
+		
+		//2. merge the changes into woDB from request.
+		if (req.getFid() != null) {
+			woDB.setFid(req.getFid());
+		}
+		if (req.getLid() != null) {
+			woDB.setLid(req.getLid());
+		}
+		if (req.getPid() != null) {
+			woDB.setPid(req.getPid());
+		}
+		if (req.getSid() != null) {
+			woDB.setSid(req.getSid());
+		}
+		if (req.getCode() != null) {
+			woDB.setCode(req.getCode());
+		}
+		if (req.getSequence() != null) {
+			woDB.setSequence(req.getSequence());
+		}
+		if (req.getWorkStartDate() != null) {
+			woDB.setWorkStartDate(req.getWorkStartDate());
+		}		
+		if (req.getWorkEndDate() != null) {
+			woDB.setWorkEndDate(req.getWorkEndDate());
+		}		
+		if (req.getOwnerUid() != null) {
+			woDB.setOwnerUid(req.getOwnerUid());
+		}		
+		if (req.getWeighingUid() != null) {
+			woDB.setWeighingUid(req.getWeighingUid());
+		}		
+		if (req.getOperatorUid() != null) {
+			woDB.setOperatorUid(req.getOperatorUid());
+		}
+		
+		return retVal;
+	}
+	
+	/**
+	 * update the status with workorder, workordermaterials and workordercontainers.
+	 * @param uid
+	 * @param workOrder
+	 * @param cascade
+	 */
 	private void updateStatus(Long uid, WorkOrder workOrder, boolean cascade) {
 		Long id = workOrder.getId();
 		Integer status = workOrder.getStatus();
@@ -358,7 +426,34 @@ public class PrmServiceImpl implements PrmService {
 	}
 
 	
-	
+	private void genWorkOrderMaterials(WorkOrder woDB) {
+		// start with workorder_material
+		Float woQty = woDB.getQuantity();
+		Bom bom = bomRepository.findOne(woDB.getBid());
+		Float bomQty = bom.getQuantity();
+		List<BomItem> bomItems = bomItemRepository.findByBid(woDB.getBid());
+		for (BomItem bomItem : bomItems) {
+			WorkOrderMaterial wom = new WorkOrderMaterial();
+			Float biQty = bomItem.getQuantity();
+			Float biTorn = bomItem.getTolerance();
+			Float qty = biQty * ( woQty / bomQty);
+			Float torn = biTorn * ( woQty / bomQty);
+			if (logger.isTraceEnabled()) {
+				logger.trace("Qty of material: " + bomItem.getMid()
+						+ ", for WorkOrder: " + woDB.getId() + "is : " + qty);
+			}
+			wom.setQuantity(qty);
+			wom.setTolerance(torn);
+			wom.setMid(bomItem.getMid());
+			wom.setUnit(bomItem.getUnit());
+			wom.setWid(woDB.getId());
+			
+			WorkOrderMaterial womDB = saveWithLog(woDB.getOwnerUid(), wom);
+			if (logger.isInfoEnabled()) {
+				logger.info("Saved work order material: " + womDB.getId());
+			}
+		}
+	}
 	
 	
 	
@@ -413,12 +508,13 @@ public class PrmServiceImpl implements PrmService {
 		generateLog(uid, workOrder);		
 	}
 
-	private void saveWithLog(Long uid, WorkOrderMaterial workOrderMaterial) {
-		workOrderMaterialRepository.save(workOrderMaterial);
+	private WorkOrderMaterial saveWithLog(Long uid, WorkOrderMaterial workOrderMaterial) {
+		WorkOrderMaterial womDB = workOrderMaterialRepository.save(workOrderMaterial);
 
 		// Add workorderlog
 		generateLog(uid, workOrderMaterial);
-
+		
+		return womDB;
 	}
 	
 	private void saveWithLog(Long uid, WorkOrderContainer workOrderContainer) {
