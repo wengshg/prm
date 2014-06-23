@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,7 @@ public class PrmController {
 	@RequestMapping(value = "/workorders", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
-	public void create(@RequestParam Long uid, @RequestBody WorkOrder workOrder,
+	public void create(@RequestParam Long uid, @Valid @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrder saved = prmService.create(uid, workOrder);
 		response.setHeader("Location",  delLastChar(request.getRequestURL()) + "/" + saved.getId());
@@ -72,7 +73,7 @@ public class PrmController {
 	@RequestMapping(value = "/workordercontainers", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
-	public void create(@RequestParam Long uid, @RequestBody WorkOrderContainer workOrderContainer,
+	public void create(@RequestParam Long uid, @Valid @RequestBody WorkOrderContainer workOrderContainer,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrderContainer saved = prmService.create(uid, workOrderContainer);
 		response.setHeader("Location", delLastChar(request.getRequestURL()) + "/" + saved.getId());

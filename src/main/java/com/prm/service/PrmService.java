@@ -8,6 +8,14 @@ import com.prm.models.work.WorkOrderContainer;
 import com.prm.models.work.WorkOrderMaterial;
 
 public interface PrmService {
+
+	String EXCEPTIONKEY_PARAMETER_MISSING = "parameter.missing";
+	
+	String EXCEPTIONKEY_PARAMETER_INVALID = "parameter.invalid";
+
+	String EXCEPTIONKEY_ACTION_NOTALLOWED = "action.not.allowed";
+
+	String EXCEPTIONKEY_INVALID_SERVER_DATA = "invalid.server.data";
 	/**
 	 * 
 	 * @param workOrder

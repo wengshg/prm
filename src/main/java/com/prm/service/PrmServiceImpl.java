@@ -9,11 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.prm.Exception.PrmRuntimeException;
 import com.prm.dao.work.WorkOrderContainerDao;
 import com.prm.dao.work.WorkOrderLogDao;
 import com.prm.dao.work.WorkOrderMaterialDao;
-import com.prm.dao.work.WorkOrderMaterialDaoImpl;
+import com.prm.exception.PrmInputException;
+import com.prm.exception.PrmServerException;
 import com.prm.models.basic.Bom;
 import com.prm.models.basic.BomItem;
 import com.prm.models.work.WorkOrder;
@@ -96,10 +96,6 @@ public class PrmServiceImpl implements PrmService {
 	@Transactional
 	@Override
 	public WorkOrder create(Long uid, WorkOrder workOrder) {
-		Float quantity = workOrder.getQuantity();
-		if (quantity == null) {
-			throw new PrmRuntimeException("Requested workorder quantity is not set.");
-		}
 		WorkOrder woDB = workOrderRepository.save(workOrder);
 		if (woDB != null) {
 			genWorkOrderMaterials(uid, woDB);
@@ -128,7 +124,7 @@ public class PrmServiceImpl implements PrmService {
 			List<WorkOrderMaterial> woms = workOrderMaterialRepository
 					.findByWidAndMid(wid, mid);
 			if (woms == null || woms.size() != 1) {
-				throw new PrmRuntimeException(
+				throw new PrmServerException(EXCEPTIONKEY_INVALID_SERVER_DATA,
 						"WorkOrderMaterial find issue, key of wid: " + wid
 								+ ", mid: " + mid);
 			}
@@ -158,7 +154,7 @@ public class PrmServiceImpl implements PrmService {
 			updateNonStatus(uid, workOrder);
 		} else if (uid == null) {
 			//status not null
-			throw new PrmRuntimeException("Missing parameter of uid.");
+			throw new PrmInputException(EXCEPTIONKEY_PARAMETER_MISSING, "Missing parameter of uid.");
 		}
 	}
 
@@ -194,7 +190,7 @@ public class PrmServiceImpl implements PrmService {
 			womID = wom.getId();
 			updateStatus(uid, wom, workOrderMaterial.getStatus());
 		} else {
-			throw new PrmRuntimeException("Invalid wid: " + wid + " or mid: " + mid + ".");
+			throw new PrmInputException(EXCEPTIONKEY_PARAMETER_INVALID, "Invalid wid: " + wid + " or mid: " + mid + ".");
 		}
 		return womID;
 	}
@@ -205,9 +201,6 @@ public class PrmServiceImpl implements PrmService {
 	@Override
 	public void update(Long uid, WorkOrderContainer workOrderContainer) {
 		Integer status = workOrderContainer.getStatus();
-		if (status == null) {
-			throw new PrmRuntimeException("WorkOrderContainer.status is null.");
-		}
 		Long id = workOrderContainer.getId();
 		WorkOrderContainer wocDB = workOrderContainerRepository.findOne(id);
 		if (wocDB != null) {
@@ -246,11 +239,11 @@ public class PrmServiceImpl implements PrmService {
 									commitSave(uid, workOrder);
 								}
 							} else {
-								throw new PrmRuntimeException("Invalid workorder ID: " + wid);
+								throw new PrmInputException(EXCEPTIONKEY_PARAMETER_INVALID, "Invalid workorder ID: " + wid);
 							}
 						}
 					} else {
-						throw new PrmRuntimeException(
+						throw new PrmServerException(EXCEPTIONKEY_INVALID_SERVER_DATA, 
 								"WorkOrderMaterial data is not unique or null, wid: " + wid
 										+ ", mid: " + mid);
 					}
@@ -268,7 +261,7 @@ public class PrmServiceImpl implements PrmService {
 		WorkOrder workOrder = workOrderRepository.findOne(wid);
 		Integer status = workOrder.getStatus();
 		if (status.intValue() != STATUS_CREATED) {
-			throw new PrmRuntimeException("This workorder can not be deleted, as it's status is: " + status);
+			throw new PrmInputException(EXCEPTIONKEY_ACTION_NOTALLOWED, "This workorder can not be deleted, as it's status is: " + status);
 		}
 		workOrderLogDao.delete(wid);
 		workOrderContainerDao.delete(wid);
@@ -286,7 +279,7 @@ public class PrmServiceImpl implements PrmService {
 		Long id = workOrder.getId();
 		WorkOrder woDB = workOrderRepository.findOne(id);
 		if (woDB.getStatus().intValue() > this.STATUS_CREATED) {
-			throw new PrmRuntimeException("Not allow to update, as its status is: " + woDB.getStatus());
+			throw new PrmInputException(EXCEPTIONKEY_ACTION_NOTALLOWED, "Not allow to update, as its status is: " + woDB.getStatus());
 		}
 		if (chkIfNeedUpdateWorkOrderMaterialAndMerge(workOrder, woDB)) {
 			//here needs to update the workordermaterial.
@@ -407,7 +400,7 @@ public class PrmServiceImpl implements PrmService {
 	 */
 	private void updateStatus(Long uid, WorkOrderMaterial womDB, Integer newStatus) {
 		if (newStatus == STATUS_CREATED) {
-			throw new PrmRuntimeException("Requested WorkOrderMaterial.status is not allowed.");
+			throw new PrmInputException(EXCEPTIONKEY_PARAMETER_INVALID, "Requested WorkOrderMaterial.status is not allowed.");
 		}
 
 		if (womDB != null) {
@@ -415,7 +408,7 @@ public class PrmServiceImpl implements PrmService {
 			chkIfAllowUpdateStatus(newStatus, originalStatus, "workordermaterial");
 			
 			if (newStatus == STATUS_DREW || newStatus == STATUS_FEED) {
-				throw new PrmRuntimeException("Workordermaterial does not supporte the status: " + newStatus );
+				throw new PrmInputException(EXCEPTIONKEY_PARAMETER_INVALID, "Workordermaterial does not supporte the status: " + newStatus );
 			}
 			
 			womDB.setStatus(newStatus);
@@ -592,7 +585,7 @@ public class PrmServiceImpl implements PrmService {
 		}
 		
 		if (retVal == false) {
-			throw new PrmRuntimeException(
+			throw new PrmInputException(EXCEPTIONKEY_PARAMETER_INVALID, 
 					"Status change for " + target + " is not allowed, status in db is: "
 							+ dbStatus + " and request status is: " + reqStatus);
 		}		
