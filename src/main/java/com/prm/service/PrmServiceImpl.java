@@ -96,8 +96,11 @@ public class PrmServiceImpl implements PrmService {
 	@Transactional
 	@Override
 	public WorkOrder create(Long uid, WorkOrder workOrder) {
+		if (workOrder.getWorkStartDate() > workOrder.getWorkEndDate()) {
+			throw new PrmRuntimeException("Requested workorder date is not valid.");
+		}
 		Float quantity = workOrder.getQuantity();
-		if (quantity == null) {
+		if (quantity.floatValue() == 0f) {
 			throw new PrmRuntimeException("Requested workorder quantity is not set.");
 		}
 		WorkOrder woDB = workOrderRepository.save(workOrder);
