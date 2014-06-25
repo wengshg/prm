@@ -21,8 +21,14 @@ public interface WorkOrderRepository extends PrmRepository<WorkOrder, Long> {
 		
 	List<WorkOrder> findByCode(@Param("code") String code);
 	
+	List<WorkOrder> findByCodeLike(@Param("code") String code);
+
 	@Query("select o from workorder o where o.workStartDate <= :date and o.workEndDate >= :date")
 	List<WorkOrder> findByDate(@Param("date") Long date);
+	
+	@Query("select o from workorder o where ((:startdate < :enddate) and NOT ((o.workEndDate < :startdate) or (o.workStartDate > :enddate)))")
+	List<WorkOrder> findByDateRange(@Param("startdate") Long startdate, @Param("enddate") Long enddate);
+	
 	
 
 }
