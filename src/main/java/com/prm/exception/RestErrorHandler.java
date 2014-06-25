@@ -3,9 +3,7 @@ package com.prm.exception;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -38,7 +36,7 @@ public class RestErrorHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public Map<String, List<RestErrorDTO>> processValidationError(MethodArgumentNotValidException ex) {
+	public RestErrors processValidationError(MethodArgumentNotValidException ex) {
 		BindingResult result = ex.getBindingResult();
 		List<FieldError> fieldErrors = result.getFieldErrors();
 		return processFieldErrors(fieldErrors);
@@ -57,17 +55,16 @@ public class RestErrorHandler {
 	}
 
 	
-	private Map<String, List<RestErrorDTO>> processFieldErrors(List<FieldError> fieldErrors) {
-		Map<String, List<RestErrorDTO>> maps = new HashMap<String, List<RestErrorDTO>>();
+	private RestErrors processFieldErrors(List<FieldError> fieldErrors) {
+		RestErrors errorLst = new RestErrors();
 		List<RestErrorDTO> dtos = new ArrayList<RestErrorDTO>();
-		maps.put("fieldErrors", dtos);
         for (FieldError fieldError: fieldErrors) {            
     		RestErrorDTO dto = new RestErrorDTO();
     		dto.setField(fieldError.getField());
     		dto.setMessage(fieldError.toString());
     		dtos.add(dto);
         }
- 
-        return maps;
+        errorLst.setErrors(dtos);
+        return errorLst;
     }
 }

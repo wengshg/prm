@@ -578,7 +578,7 @@ public class PrmServiceImpl implements PrmService {
 			if (reqStatus == dbStatus + 1) {
 				retVal = true;
 			}
-		} else {
+		} else {//change to complete.
 			if (dbStatus == STATUS_FEED) {
 				retVal = true;
 			}

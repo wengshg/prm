@@ -6,14 +6,16 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.prm.models.listener.WorkOrderListener;
 
 @Entity(name="workorder")
 @EntityListeners({WorkOrderListener.class})
 public class WorkOrder {
+	public interface Create {};
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
@@ -22,16 +24,21 @@ public class WorkOrder {
 	private Long bid;
 	private Long lid;
 	private Long pid;
+	@NotNull(groups={Create.class})
+	@Size(min=3, groups={Create.class})
 	private String code;
 	private Integer sequence;
 	private Float quantity = 0F;
 	private String unit;
 	@Column(name="work_sdate")
+	@NotNull(groups={Create.class})
 	private Long workStartDate;
 	@Column(name="work_edate")
+	@NotNull(groups={Create.class})
 	private Long workEndDate;
 	private Integer status = 0;
 	@Column(name="owner_uid")
+	@NotNull(groups={Create.class})
 	private Long ownerUid;
 	@Column(name="weighing_uid")
 	private Long weighingUid;

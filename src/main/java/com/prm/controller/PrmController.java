@@ -10,6 +10,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,8 +41,8 @@ public class PrmController {
 	 */
 	@RequestMapping(value = "/workorders", method = RequestMethod.POST)
 	@ResponseBody
-	@ResponseStatus(HttpStatus.CREATED)
-	public void create(@RequestParam Long uid, @Valid @RequestBody WorkOrder workOrder,
+	@ResponseStatus(HttpStatus.CREATED)	
+	public void create(@RequestParam Long uid, @Validated({WorkOrder.Create.class}) @RequestBody WorkOrder workOrder,
 			HttpServletRequest request, HttpServletResponse response) {
 		WorkOrder saved = prmService.create(uid, workOrder);
 		response.setHeader("Location",  delLastChar(request.getRequestURL()) + "/" + saved.getId());
