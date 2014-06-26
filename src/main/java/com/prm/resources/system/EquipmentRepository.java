@@ -13,10 +13,13 @@ import com.prm.resources.PrmRepository;
 public interface EquipmentRepository extends PrmRepository<Equipment, Long> {
 	List<Equipment> findByEnable(@Param("enable") Integer enable);
 	
-	Equipment findByCode(@Param("code") String code);
+	List<Equipment> findByCode(@Param("code") String code);
 
-	Equipment findByName(@Param("name") String name);
+	List<Equipment> findByName(@Param("name") String name);
 	
+	List<Equipment> findByCodeLike(@Param("code") String code);
+
+	List<Equipment> findByNameLike(@Param("name") String name);
 	/**
 	 * Search certain type equipments in the specified line.
 	 * @param lid

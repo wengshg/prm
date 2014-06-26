@@ -17,4 +17,10 @@ public interface MaterialRepository extends PrmRepository<Material, Long> {
 	 * @return
 	 */
 	List<Material> findByCode(@Param("code") String code);
+
+	List<Material> findByCodeLike(@Param("code") String code);
+
+	List<Material> findByName(@Param("name") String name);
+
+	List<Material> findByNameLike(@Param("name") String name);
 }

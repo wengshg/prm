@@ -14,4 +14,12 @@ public interface EquipmentGateRepository extends
 	List<EquipmentGate> findByLidAndType(@Param("lid")Long lid, @Param("type")String type);
 	
 	List<EquipmentGate> findByEidAndType(@Param("eid")Long eid, @Param("type")String type);
+	
+	List<EquipmentGate> findByCode(@Param("code") String code);
+	
+	List<EquipmentGate> findByCodeLike(@Param("code") String code);
+	
+	List<EquipmentGate> findByName(@Param("name") String name);
+
+	List<EquipmentGate> findByNameLike(@Param("name") String name);
 }

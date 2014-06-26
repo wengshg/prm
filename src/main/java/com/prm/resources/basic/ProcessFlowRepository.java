@@ -16,4 +16,12 @@ public interface ProcessFlowRepository extends PrmRepository<ProcessFlow, Long> 
 	 * @return
 	 */
 	List<ProcessFlow> findByBid(@Param("bid") Long bid);
+	
+	List<ProcessFlow> findByCode(@Param("code") String code);
+	
+	List<ProcessFlow> findByCodeLike(@Param("code") String code);
+	
+	List<ProcessFlow> findByName(@Param("name") String name);
+
+	List<ProcessFlow> findByNameLike(@Param("name") String name);
 }

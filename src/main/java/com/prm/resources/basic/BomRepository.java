@@ -16,4 +16,13 @@ public interface BomRepository extends PrmRepository<Bom, Long> {
 	 * @return
 	 */
 	List<Bom> findByPid(@Param("pid") Long pid);
+	
+	
+	List<Bom> findByCode(@Param("code") String code);
+	
+	List<Bom> findByCodeLike(@Param("code") String code);
+	
+	List<Bom> findByName(@Param("name") String name);
+
+	List<Bom> findByNameLike(@Param("name") String name);
 }
