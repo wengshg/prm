@@ -12,7 +12,11 @@ import com.prm.resources.PrmRepository;
 public interface LineRepository extends PrmRepository<Line, Long> {
 	List<Line> findByEnable(@Param("enable") Integer enable);
 	
-	Line findByCode(@Param("code") String code);
+	List<Line> findByCode(@Param("code") String code);
 
-	Line findByName(@Param("name") String name);
+	List<Line> findByName(@Param("name") String name);
+
+	List<Line> findByCodeLike(@Param("code") String code);
+
+	List<Line> findByNameLike(@Param("name") String name);
 }
