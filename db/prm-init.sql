@@ -90,6 +90,7 @@ CREATE TABLE material (
     name varchar(32) NOT NULL unique,
     type varchar(32),
     container varchar(32),
+    container_weight float,
     unit varchar(8),
     enable tinyint
 );
@@ -162,6 +163,7 @@ CREATE TABLE workorder (
     fid int NOT NULL constraint fk_workorder_fid foreign key references process_flow(id),
     bid int NOT NULL constraint fk_workorder_bid foreign key references bom(id),
     lid int NOT NULL constraint fk_workorder_lid foreign key references line(id),
+    eid int NOT NULL constraint fk_workorder_eid foreign key references equipment(id),
     pid int NOT NULL constraint fk_workorder_pid foreign key references product(id),
     code varchar(32) NOT NULL unique,
     sequence smallint,
