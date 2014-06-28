@@ -14,6 +14,7 @@ public class Material {
 	private String name;
 	private String type;
 	private String container;
+	private Float containerWeight;
 	private String unit;
 	private Integer enable;
 	public Long getId() {
@@ -57,6 +58,12 @@ public class Material {
 	}
 	public void setEnable(Integer enable) {
 		this.enable = enable;
+	}
+	public Float getContainerWeight() {
+		return containerWeight;
+	}
+	public void setContainerWeight(Float containerWeight) {
+		this.containerWeight = containerWeight;
 	}
 
 }

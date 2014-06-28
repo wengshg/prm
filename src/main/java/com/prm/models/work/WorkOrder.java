@@ -23,6 +23,7 @@ public class WorkOrder {
 	private Long fid;
 	private Long bid;
 	private Long lid;
+	private Long eid;
 	private Long pid;
 	@NotNull(groups={Create.class})
 	@Size(min=3, groups={Create.class})
@@ -139,6 +140,12 @@ public class WorkOrder {
 	}
 	public void setOperatorUid(Long operatorUid) {
 		this.operatorUid = operatorUid;
+	}
+	public Long getEid() {
+		return eid;
+	}
+	public void setEid(Long eid) {
+		this.eid = eid;
 	}
 
 }
