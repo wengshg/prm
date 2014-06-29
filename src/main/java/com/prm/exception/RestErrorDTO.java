@@ -3,7 +3,6 @@ package com.prm.exception;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
 public class RestErrorDTO {
 	private String key;
 	private String field;

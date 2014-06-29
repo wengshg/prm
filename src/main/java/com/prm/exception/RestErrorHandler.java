@@ -5,6 +5,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -45,12 +47,15 @@ public class RestErrorHandler {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public RestErrorDTO processException(Exception ex) {
+	public RestErrorDTO processException(Exception ex, HttpServletRequest req) {
 		RestErrorDTO dto = new RestErrorDTO();
 		dto.setMessage(ex.getMessage());
 		StringWriter errors = new StringWriter();
-		ex.printStackTrace(new PrintWriter(errors));
-		dto.setRootCause(errors.toString());
+		String strace = req.getParameter("stacktrace");
+		if (strace != null && strace.equalsIgnoreCase("true")) {
+			ex.printStackTrace(new PrintWriter(errors));
+			dto.setRootCause(errors.toString());
+		}
 		return dto;
 	}
 
