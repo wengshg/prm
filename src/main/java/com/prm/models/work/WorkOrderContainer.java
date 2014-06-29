@@ -11,6 +11,7 @@ public class WorkOrderContainer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
+	private Long sid;
 	private Long wid;
 	private Long mid;
 	private Long fid;
@@ -107,6 +108,12 @@ public class WorkOrderContainer {
 	}
 	public void setId(Long id) {
 		this.id = id;
+	}
+	public Long getSid() {
+		return sid;
+	}
+	public void setSid(Long sid) {
+		this.sid = sid;
 	}
 
 }

@@ -11,6 +11,10 @@ public class WorkOrderLog {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
+	private Long sid;
+	private Long lid;
+	private Long eid;
+	private Long pid;
 	private Long wid;
 	private Long mid;
 	private Long uid;
@@ -67,6 +71,30 @@ public class WorkOrderLog {
 	}
 	public void setId(Long id) {
 		this.id = id;
+	}
+	public Long getSid() {
+		return sid;
+	}
+	public void setSid(Long sid) {
+		this.sid = sid;
+	}
+	public Long getLid() {
+		return lid;
+	}
+	public void setLid(Long lid) {
+		this.lid = lid;
+	}
+	public Long getEid() {
+		return eid;
+	}
+	public void setEid(Long eid) {
+		this.eid = eid;
+	}
+	public Long getPid() {
+		return pid;
+	}
+	public void setPid(Long pid) {
+		this.pid = pid;
 	}
 
 }

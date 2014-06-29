@@ -11,6 +11,7 @@ public class WorkOrderMaterial {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
+	private Long sid;
 	private Long wid;
 	private Long mid;
 	@Column(name="actl_total")
@@ -82,6 +83,12 @@ public class WorkOrderMaterial {
 	}
 	public void setTolerance(Float tolerance) {
 		this.tolerance = tolerance;
+	}
+	public Long getSid() {
+		return sid;
+	}
+	public void setSid(Long sid) {
+		this.sid = sid;
 	}
 
 }

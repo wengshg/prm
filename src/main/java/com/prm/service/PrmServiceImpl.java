@@ -227,17 +227,20 @@ public class PrmServiceImpl implements PrmService {
 					Long mid = wocDB.getMid();
 					List<WorkOrderMaterial> woms = workOrderMaterialRepository
 							.findByWidAndMid(wid, mid);
+					WorkOrder workOrder = workOrderRepository.findOne(wid);
 					if (woms != null && woms.size() == 1) {
 						WorkOrderMaterial wom = woms.get(0);
 						if (wom != null && status.intValue() != wom.getStatus().intValue()) {
 							
 							wom.setStatus(status);
 							
-							commitSave(uid, wom);
+							Long lid = workOrder.getLid();
+							Long pid = workOrder.getPid();
+							commitSave(uid, lid, pid, wom);
 						}
+						
 						if (workOrderMaterialDao.isAllMaterialsStatusAS(wid, status)) {
-							//save workorder
-							WorkOrder workOrder = workOrderRepository.findOne(wid);
+							//save workorder							
 							if (workOrder != null) {
 								if (status.intValue() != workOrder.getStatus().intValue()) {
 									
@@ -370,6 +373,8 @@ public class PrmServiceImpl implements PrmService {
 		Long id = workOrder.getId();
 		Integer status = workOrder.getStatus();
 		WorkOrder woDB = workOrderRepository.findOne(id);
+		Long lid = woDB.getLid();
+		Long pid = woDB.getPid();
 		if (woDB != null) {
 			chkIfAllowUpdateStatus(status, woDB.getStatus(), "workorder");
 			if (cascade && chkIfUpdateDownChain(status.intValue(), woDB.getStatus().intValue())) {
@@ -388,7 +393,7 @@ public class PrmServiceImpl implements PrmService {
 					}
 					wom.setStatus(status);
 
-					saveWithLog(uid, wom);
+					saveWithLog(uid, lid, pid, wom);
 				}
 			}
 			
@@ -420,12 +425,14 @@ public class PrmServiceImpl implements PrmService {
 			
 			womDB.setStatus(newStatus);
 
-			commitSave(uid, womDB);
+			WorkOrder woDB = workOrderRepository.findOne(womDB.getWid());
+			Long lid = woDB.getLid();
+			Long pid = woDB.getPid();
+			commitSave(uid, lid, pid, womDB);
 			
 			if (newStatus.intValue() == STATUS_ALLOCATED) {
 				//update cascade table of work_order
 				if (workOrderMaterialDao.isAllMaterialsStatusAS(womDB.getWid(), newStatus.intValue())) {
-					WorkOrder woDB = workOrderRepository.findOne(womDB.getWid());
 					if (newStatus.intValue() != woDB.getStatus().intValue()) {
 						woDB.setStatus(newStatus);
 						
@@ -450,6 +457,8 @@ public class PrmServiceImpl implements PrmService {
 	private void genWorkOrderMaterials(Long uid, WorkOrder woDB) {
 		// start with workorder_material
 		Float woQty = woDB.getQuantity();
+		Long lid = woDB.getLid();
+		Long pid = woDB.getPid();
 		Bom bom = bomRepository.findOne(woDB.getBid());
 		Float bomQty = bom.getQuantity();
 		List<BomItem> bomItems = bomItemRepository.findByBid(woDB.getBid());
@@ -469,7 +478,7 @@ public class PrmServiceImpl implements PrmService {
 			wom.setUnit(bomItem.getUnit());
 			wom.setWid(woDB.getId());
 			
-			WorkOrderMaterial womDB = saveWithLog(uid, wom);
+			WorkOrderMaterial womDB = saveWithLog(uid, lid, pid, wom);
 			if (logger.isInfoEnabled()) {
 				logger.info("Saved work order material: " + womDB.getId());
 			}
@@ -509,8 +518,8 @@ public class PrmServiceImpl implements PrmService {
 	}
 	
 	@Transactional
-	private void commitSave(Long uid, WorkOrderMaterial workOrderMaterial) {
-		saveWithLog(uid, workOrderMaterial);
+	private void commitSave(Long uid, Long lid, Long pid, WorkOrderMaterial workOrderMaterial) {
+		saveWithLog(uid, lid, pid, workOrderMaterial);
 	}
 	
 	@Transactional
@@ -529,11 +538,11 @@ public class PrmServiceImpl implements PrmService {
 		generateLog(uid, workOrder);		
 	}
 
-	private WorkOrderMaterial saveWithLog(Long uid, WorkOrderMaterial workOrderMaterial) {
+	private WorkOrderMaterial saveWithLog(Long uid, Long lid, Long pid, WorkOrderMaterial workOrderMaterial) {
 		WorkOrderMaterial womDB = workOrderMaterialRepository.save(workOrderMaterial);
 
 		// Add workorderlog
-		generateLog(uid, workOrderMaterial);
+		generateLog(uid, lid, pid, workOrderMaterial);
 		
 		return womDB;
 	}
@@ -553,27 +562,37 @@ public class PrmServiceImpl implements PrmService {
 		log.setStatus(workOrder.getStatus());
 		log.setCreatedUid(uid);
 		log.setWid(workOrder.getId());
+		log.setSid(workOrder.getSid());
+		log.setLid(workOrder.getLid());
+		log.setEid(workOrder.getEid());
+		log.setPid(workOrder.getPid());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);
 	}
 
-	private void generateLog(Long uid, WorkOrderMaterial workOrderMaterial) {
+	private void generateLog(Long uid, Long lid, Long pid, WorkOrderMaterial workOrderMaterial) {
 		WorkOrderLog log = new WorkOrderLog();
 		log.setStatus(workOrderMaterial.getStatus());
 		log.setCreatedUid(uid);
 		log.setWid(workOrderMaterial.getWid());
 		log.setMid(workOrderMaterial.getMid());
+		log.setSid(workOrderMaterial.getSid());
+		log.setLid(lid);
+		log.setPid(pid);
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);
 	}
 
 	private void generateLog(Long uid, WorkOrderContainer workOrderContainer) {
 		WorkOrderLog log = new WorkOrderLog();
-		log.setMid(workOrderContainer.getMid());
 		log.setSequence(workOrderContainer.getSequence());
 		log.setStatus(workOrderContainer.getStatus());
 		log.setCreatedUid(uid);
 		log.setWid(workOrderContainer.getWid());
+		log.setMid(workOrderContainer.getMid());
+		log.setSid(workOrderContainer.getSid());
+		log.setLid(workOrderContainer.getLid());
+		log.setPid(workOrderContainer.getPid());
 		log.setCreatedTime(Calendar.getInstance().getTimeInMillis());
 		workOrderLogRepository.save(log);
 	}
