@@ -181,7 +181,7 @@ CREATE TABLE workorder_material (
     tolerance float,
     container_qty int,
     unit varchar(8),
-    replenished tinyint,
+    replenish tinyint,
     status tinyint
 );
 
@@ -248,7 +248,7 @@ CREATE TABLE store_requisition_item (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     qid int NOT NULL constraint fk_store_requisition_item_qid foreign key references store_requisition(id),
     sid int NOT NULL constraint fk_store_requisition_item_sid foreign key references schedule(id),
-    wid int NOT NULL constraint fk_requisition_item_wid foreign key references workorder(id),
+    wid int constraint fk_requisition_item_wid foreign key references workorder(id),
     mid int NOT NULL constraint fk_store_requisition_item_mid foreign key references material(id),
     quantity float,
     unit varchar(8)
