@@ -216,7 +216,7 @@ CREATE TABLE store_requisition (
     wid int NOT NULL constraint fk_store_requisition_wid foreign key references workorder(id),
     code varchar(32) NOT NULL unique,
     created_date bigint,
-    created_uid int NOT NULL constraint fk_store_requisition_created_uid foreign key references [user](id)
+    created_uid int NOT NULL constraint fk_store_requisition_created_uid foreign key references [user](id),
     signed_date bigint,
     signed_uid int constraint fk_store_requisition_signed_uid foreign key references [user](id)
 );
