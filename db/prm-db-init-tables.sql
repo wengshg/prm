@@ -7,7 +7,7 @@
 -- V1.2.2 2014-6-15, add intialized data of weighing_room, workorder_container
 -- V1.2.3 2014-6-15, remove NOT NULL for workorder_log.uid
 -- V1.2.4 2014-6-20, split to drop tables file & init talbes file
--- V1.3 2014-6-27, add material.container_weight, workorder.eid
+-- V1.3 2014-6-27, add workorder.eid, process_flow.type change to tinyint.
 
 -- ----------------------------------------------------------------------------
 -- Create Tables 
@@ -28,6 +28,7 @@ CREATE TABLE line(
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
     quantity float,
+    unit varchar(8),
     enable tinyint
 );
 
@@ -56,6 +57,16 @@ CREATE TABLE weighing_room(
     name varchar(32) NOT NULL unique
 );
 
+CREATE TABLE container(
+    id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    code varchar(32) NOT NULL unique,
+    name varchar(32) NOT NULL unique,
+    type varchar(32),
+    quantity float,
+    unit varchar(8),
+    enable tinyint
+);
+
 CREATE TABLE product (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     code varchar(32) NOT NULL unique,
@@ -63,14 +74,12 @@ CREATE TABLE product (
     unit varchar(8)
 );
 
-
 CREATE TABLE material (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
     type varchar(32),
     container varchar(32),
-    container_weight float,  -- 对应原料桶的默认皮重
     unit varchar(8),
     enable tinyint
 );
@@ -103,7 +112,7 @@ CREATE TABLE process_flow (
     pid int NOT NULL constraint fk_process_flow_pid foreign key references product(id),
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
-    type varchar(32),
+    type tinyint,
     enable tinyint
 );
 
@@ -123,10 +132,10 @@ CREATE TABLE process_flow_item (
 
 CREATE TABLE schedule (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    fid int NOT NULL constraint fk_schedule_fid foreign key references process_flow(id),
-    bid int NOT NULL constraint fk_schedule_bid foreign key references bom(id),
     lid int NOT NULL constraint fk_schedule_lid foreign key references line(id),
     pid int NOT NULL constraint fk_schedule_pid foreign key references product(id),
+    bid int NOT NULL constraint fk_schedule_bid foreign key references bom(id),
+    fid int NOT NULL constraint fk_schedule_fid foreign key references process_flow(id),
     code varchar(32) NOT NULL unique,
     quantity float,
     unit varchar(8),
@@ -140,14 +149,14 @@ CREATE TABLE schedule (
 
 CREATE TABLE workorder (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    sequence smallint,
     sid int NOT NULL constraint fk_workorder_sid foreign key references schedule(id),
+    lid int NOT NULL constraint fk_workorder_lid foreign key references line(id),
+    eid int NOT NULL constraint fk_workorder_eid foreign key references equipment(id), -- 对应一个桶（罐体）
     pid int NOT NULL constraint fk_workorder_pid foreign key references product(id),
     bid int NOT NULL constraint fk_workorder_bid foreign key references bom(id),
     fid int NOT NULL constraint fk_workorder_fid foreign key references process_flow(id),
-    lid int NOT NULL constraint fk_workorder_lid foreign key references line(id),
-    eid int NOT NULL constraint fk_workorder_eid foreign key references equipment(id), -- 对应一个桶（罐体）
     code varchar(32) NOT NULL unique,
-    sequence smallint,
     quantity float,
     unit varchar(8),
     work_sdate bigint, 
@@ -158,8 +167,27 @@ CREATE TABLE workorder (
     operator_uid int constraint fk_workorder_operator_uid foreign key references [user](id)
 );
 
+CREATE TABLE workorder_material (
+    id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    sid int NOT NULL constraint fk_workorder_material_sid foreign key references schedule(id),
+    wid int NOT NULL constraint fk_workorder_material_bid foreign key references workorder(id),
+    mid int NOT NULL constraint fk_workorder_material_mid foreign key references material(id),
+    lid int NOT NULL constraint fk_workorder_material_lid foreign key references line(id),
+    eid int NOT NULL constraint fk_workorder_material_eid foreign key references equipment(id),
+    pid int NOT NULL constraint fk_workorder_material_pid foreign key references product(id),
+    actl_total float,
+    actl_quantity float,
+    quantity float,
+    tolerance float,
+    container_qty int,
+    unit varchar(8),
+    replenished tinyint,
+    status tinyint
+);
+
 CREATE TABLE workorder_container (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    sid int NOT NULL constraint fk_workorder_container_sid foreign key references schedule(id),
     wid int NOT NULL constraint fk_workorder_container_wid foreign key references workorder(id),
     mid int NOT NULL constraint fk_workorder_container_mid foreign key references material(id),
     pid int NOT NULL constraint fk_workorder_container_pid foreign key references product(id),
@@ -172,28 +200,21 @@ CREATE TABLE workorder_container (
     total float,
     quantity float,
     unit varchar(8),
-    status tinyint
-);
-
-CREATE TABLE workorder_material (
-    id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    wid int NOT NULL constraint fk_workorder_material_bid foreign key references workorder(id),
-    mid int NOT NULL constraint fk_workorder_material_mid foreign key references material(id),
-    actl_total float,
-    actl_quantity float,
-    quantity float,
-    tolerance float,
-    container_qty int,
-    unit varchar(8),
+    replenished tinyint,
     status tinyint
 );
 
 CREATE TABLE workorder_log (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    sid int NOT NULL constraint fk_workorder_log_sid foreign key references schedule(id),
     wid int NOT NULL constraint fk_workorder_log_bid foreign key references workorder(id),
     mid int,
-    uid int,
+    pid int NOT NULL constraint fk_workorder_log_pid foreign key references product(id),
+    lid int NOT NULL constraint fk_workorder_log_lid foreign key references line(id),
+    eid int,
+    gid int,
     sequence smallint,
+    uid int,
     status tinyint,
     created_time bigint,
     created_uid int NOT NULL constraint fk_workorder_log_created_uid foreign key references [user](id)
@@ -201,8 +222,10 @@ CREATE TABLE workorder_log (
 
 CREATE TABLE store_material (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    mid int NOT NULL constraint fk_store_material_mid foreign key references material(id),
     rid int NOT NULL constraint fk_store_material_rid foreign key references weighing_room(id),
+    mid int NOT NULL constraint fk_store_material_mid foreign key references material(id),
+    sid int,
+    wid int,
     original_code varchar(64),
     quantity float,
     unit varchar(8),
@@ -212,9 +235,9 @@ CREATE TABLE store_material (
 
 CREATE TABLE store_requisition (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-	sid int NOT NULL constraint fk_store_requisition_sid foreign key references schedule(id),
-    wid int NOT NULL constraint fk_store_requisition_wid foreign key references workorder(id),
-    code varchar(32) NOT NULL unique,
+    sid int NOT NULL constraint fk_store_requisition_rid foreign key references schedule(id),
+    wid int,
+    code varchar(32),
     created_date bigint,
     created_uid int NOT NULL constraint fk_store_requisition_created_uid foreign key references [user](id),
     signed_date bigint,
@@ -223,14 +246,13 @@ CREATE TABLE store_requisition (
 
 CREATE TABLE store_requisition_item (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    qid int NOT NULL constraint fk_store_requisition_item_qid foreign key references material(id),
-	sid int NOT NULL constraint fk_store_requisition_item_sid foreign key references schedule(id),
-    wid int NOT NULL constraint fk_requisition_item_wid foreign key references workorder(id),
-    mid int NOT NULL constraint fk_requisition_item_mid foreign key references material(id),
-	quantity float,
-    unit varchar(8),
+    qid int NOT NULL constraint fk_store_requisition_item_qid foreign key references store_requisition(id),
+    sid int NOT NULL constraint fk_store_requisition_item_sid foreign key references schedule(id),
+    wid int,
+    mid int NOT NULL constraint fk_store_requisition_item_mid foreign key references material(id),
+    quantity float,
+    unit varchar(8)
 );
-
 
 -- ----------------------------------------------------------------------------
 -- End of Initiailized Database Tables
@@ -246,8 +268,8 @@ INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s
 INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test4', 'spass', '李四', '品保部', '品保员', 'memo', 1);
 INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test5', 'spass', '王五', '领料部', '领料员', 'memo', 1);
 
-INSERT INTO [line] (code, name, quantity, enable) VALUES ('s-L001', 's-1号产线', 32, 1);
-INSERT INTO [line] (code, name, quantity, enable) VALUES ('s-L002', 's-2号产线', 27, 1);
+INSERT INTO [line] (code, name, quantity, unit, enable) VALUES ('s-L001', 's-1号产线', 32000, 'kl', 1);
+INSERT INTO [line] (code, name, quantity, unit, enable) VALUES ('s-L002', 's-2号产线', 27000, 'kl', 1);
 
 INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0101', 's-1号线搅拌1罐', '搅拌罐', 1);
 INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0102', 's-1号线搅拌2罐', '搅拌罐', 1);
@@ -289,6 +311,9 @@ INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 14,
 INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 15, 's-G0205T1', 's-2号线加热2罐1口', '大投料口', 1);
 INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 16, 's-G0206T1', 's-2号线加热3罐1口', '大投料口', 1);
 
+INSERT INTO [container] (code, name, type, quantity, unit, enable) VALUES ('s-C001', '5Kg液料桶', '液料桶', 5, 'kg', 1);
+INSERT INTO [container] (code, name, type, quantity, unit, enable) VALUES ('s-C002', '2g塑料袋', '塑料袋', 0.002, 'kg', 1);
+
 INSERT INTO [weighing_room] (code, name) VALUES ('s-R001', 's-1号配料间');
 INSERT INTO [weighing_room] (code, name) VALUES ('s-R002', 's-2号配料间');
 
@@ -296,11 +321,11 @@ INSERT INTO [product] (code, name, unit) VALUES ('s-PNFGY01', 's-农夫果园', 't')
 INSERT INTO [product] (code, name, unit) VALUES ('s-PDFSY01', 's-东方树叶', 't');
 INSERT INTO [product] (code, name, unit) VALUES ('s-PSRC100', 's-水溶C100', 't');
 
-INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-FJ01', 's-番茄浓缩液', '液体料', '桶', 0, 'kg', 1);
-INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-XJ01', 's-香精A号', '粉末料', '包', 0.005, 'kg', 1);
-INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-XL01', 's-香料', '固体料', '包', 0.005, 'kg', 1);
-INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-CY01', 's-茶叶浓缩液', '液体料', '桶', 0, 'kg', 1);
-INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-CZ01', 's-橙汁浓缩液', '液体料', '桶', 0, 'kg', 1);
+INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-FJ01', 's-番茄浓缩液', '液体料', '桶', 'kg', 1);
+INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-XJ01', 's-香精A号', '粉末料', '包', 'kg', 1);
+INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-XL01', 's-香料', '固体料', '包', 'kg', 1);
+INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-CY01', 's-茶叶浓缩液', '液体料', '桶', 'kg', 1);
+INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-CZ01', 's-橙汁浓缩液', '液体料', '桶', 'kg', 1);
 -- ----------------------------------------------------------------------------
 -- 原料进配料间
 INSERT INTO [store_material] (mid, rid, original_code, quantity, unit, signed_date, signed_uid) VALUES (1, 1, 's-MO2014060601', 1100, 'kg',
@@ -418,7 +443,7 @@ INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, 
 
 
 -- 计划
-INSERT INTO [schedule] (fid, pid, lid, bid, code, quantity, unit, schd_sdate, schd_edate, schd_time, appr_time, schd_uid, appr_uid) VALUES (1, 1, 1, 1, 'S140606001', 3200, 't',
+INSERT INTO [schedule] (lid, pid, bid, fid, code, quantity, unit, schd_sdate, schd_edate, schd_time, appr_time, schd_uid, appr_uid) VALUES (1, 1, 1, 1, 'S140606001', 3200, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:30:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-08-05 17:30:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:00:00'),
@@ -436,25 +461,25 @@ FROM [schedule];
 
 
 -- 工单
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140606001', 1, 32000, 'kg', 
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140606001', 1, 32000, 'kl', 
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 17:30:00'), 9, 1, 1, 2); -- 完成
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 1, 1, 'W140607001', 2, 32000, 'kg',
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 1, 1, 'W140607001', 2, 32000, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-07 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-07 17:30:00'), 5, 1, 1, 2); -- 已投
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140608001', 3, 32000, 'kg',
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140608001', 3, 32000, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-08 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-08 17:30:00'), 4, 1, 1, 2); -- 已领
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140609001', 4, 32000, 'kg',
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140609001', 4, 32000, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-09 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-09 17:30:00'), 3, 1, 1, 2); -- 已复
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 2, 4, 'W140610001', 5, 32000, 'kg',
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 2, 4, 'W140610001', 5, 32000, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-10 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-10 17:30:00'), 2, 1, 1, 2); -- 已配
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140611001', 6, 32000, 'kg',
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140611001', 6, 32000, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-11 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-11 17:30:00'), 1, 1, 1, 2); -- 已审
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140612001', 7, 32000, 'kg',
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140612001', 7, 32000, 'kl',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-12 08:00:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-12 17:30:00'), 0, 1, 1, 2); -- 未执行
 --
@@ -467,105 +492,105 @@ FROM [workorder];
 
 -- 工单原料
 -- 工单1完成
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 1, 1, 1, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 2, 1, 1, 1, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 3, 1, 1, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
 
 -- 工单2已投 (客户端没有设置完成标记，原因为：投料后还需要其他工艺处理时间)
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (2, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (2, 2, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (2, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 1, 1, 2, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 2, 1, 2, 1, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 3, 1, 2, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
 
 -- 工单3已领 (所有工单原料status>=4, 并且存在至少一种原料status=4)
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (3, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 4);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (3, 2, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 4);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (3, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5); -- 该原料全部投完，工单其他原料没有全部投完
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 1, 1, 3, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 4);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 2, 1, 3, 1, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 4);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 3, 1, 3, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5); -- 该原料全部投完，工单其他原料没有全部投完
 
 -- 工单4已复核
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (4, 1, 32*20*1.0009+4,  32*22*1.0009,	  32*22,  1, 3, 'kg', 3);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (4, 2, 32*15*1.0009+4,  32*12*1.0009,	  32*12,  1, 3, 'kg', 3);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (4, 3, 32*1.5*1.0009+1,   32*1.5*1.0009,  32*1.5, 1, 3, 'kg', 3);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 4, 1, 1, 1, 1, 32*20*1.0009+4,  32*22*1.0009,	  32*22,  1, 3, 'kg', 3);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 4, 2, 1, 1, 1, 32*15*1.0009+4,  32*12*1.0009,	  32*12,  1, 3, 'kg', 3);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 4, 3, 1, 1, 1, 32*1.5*1.0009+1,   32*1.5*1.0009,  32*1.5, 1, 3, 'kg', 3);
 
 -- 工单5已配
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (5, 1, 32*20+4,  32*20+0.5, 32*20, 1, 3, 'kg', 2);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (5, 2, 32*15+4,  32*15+0.5, 32*15, 1, 3, 'kg', 2);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (5, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 2);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 5, 1, 1, 2, 1, 32*20+4,  32*20+0.5, 32*20, 1, 3, 'kg', 2);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 5, 2, 1, 2, 1, 32*15+4,  32*15+0.5, 32*15, 1, 3, 'kg', 2);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 5, 3, 1, 2, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 2);
 
 -- 工单6已审
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (6, 1, 0,  0, 32*20, 32*20*0.001, 0, 'kg', 1);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (6, 2, 0,  0, 32*15, 32*15*0.001, 0, 'kg', 1);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (6, 3, 0,  0, 32*1,  32*1*0.001, 0, 'kg', 1);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 6, 1, 1, 3, 1, 0,  0, 32*20, 32*20*0.001, 0, 'kg', 1);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 6, 2, 1, 3, 1, 0,  0, 32*15, 32*15*0.001, 0, 'kg', 1);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 6, 3, 1, 3, 1, 0,  0, 32*1,  32*1*0.001, 0, 'kg', 1);
 
 -- 工单7未执行
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (7, 1, 32*20+4,  32*20+0.5, 32*20, 1, 0, 'kg', 0);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (7, 2, 32*15+4,  32*15+0.5, 32*15, 1, 0, 'kg', 0);
-INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (7, 3, 32*1+1,   32*1+0.2,  32*1,  1, 0, 'kg', 0);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 7, 1, 1, 1, 1, 32*20+4,  32*20+0.5, 32*20, 1, 0, 'kg', 0);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 7, 2, 1, 1, 1, 32*15+4,  32*15+0.5, 32*15, 1, 0, 'kg', 0);
+INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 7, 3, 1, 1, 1, 32*1+1,   32*1+0.2,  32*1,  1, 0, 'kg', 0);
 
 -- 工单原料桶
 -- 工单1完成 s-番茄浓缩液 32*20 = 640 kg, 每个投料口投2桶，每桶80kg左右。
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 1, 1,
 1, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 1, 1,
 2, 80+3, 80.0, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 2, 2,
 3, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 2, 2,
 4, 80.3+3, 80.3, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 3, 3,
 5, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 3, 3,
 6, 80+3, 80.0, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 4, 4,
 7, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 4, 4,
 8, 80.3+3, 80.3, 'kg', 5);
 
 -- 工单1完成 s-香精A号 32*15 = 480 kg, 每个投料口投1桶，每桶120kg左右。
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 1, 1,
 1, 120.0+5, 120.0, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 2, 2,
 2, 120.3+5, 120.3, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 3, 3,
 3, 120.8+5, 119.8, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 4, 4,
 4, 120.1+5, 120.1, 'kg', 5);
 
 -- 工单1完成 s-香料 32*1 = 32 kg, 2个投料口投1包，每包16kg左右。
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 3, 1, 1,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 3, 1, 1,		1, 1, 1, 1,
 1, 16.3+0.3, 16.3, 'kg', 5);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 3, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 3, 1, 1,		1, 1, 3, 3,
 2, 16.1+0.3, 16.1, 'kg', 5);
 
 
 -- 工单原料桶
 -- 工单4已复核 s-番茄浓缩液 32*22 = 704 kg, 每个投料口投1桶，每桶176kg左右。
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 1, 1,
 1, 176+3, 176, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 2, 2,
 2, 176+3, 176, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 3, 3,
 3, 176+3, 176, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 4, 4,
 4, 176+3, 176, 'kg', 3);
 
 -- 工单4已复核 s-香精A号 32*12 = 384 kg, 每个投料口投1包，每包96kg左右。
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 1, 1,
 1, 96.0+5, 96.0, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 2, 2,
 2, 96.3+5, 96.3, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 3, 3,
 3, 96.8+5, 96.8, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 4, 4,
 4, 96.1+5, 96.1, 'kg', 3);
 
 -- 工单4已复核 s-香料 32*1.5 = 48 kg, 每个投料口投1包，每包12kg左右。
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 1, 1,
 1, 12.3+0.3, 12.3, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 2, 2,
 2, 12.1+0.3, 12.1, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 3, 3,
 3, 12.3+0.3, 12.3, 'kg', 3);
-INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 4, 4,
 4, 12.1+0.3, 12.1, 'kg', 3);
 
 -- ----------------------------------------------------------------------------
