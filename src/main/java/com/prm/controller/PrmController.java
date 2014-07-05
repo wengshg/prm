@@ -96,9 +96,10 @@ public class PrmController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void patch(@RequestParam Long uid, @RequestParam(required=false, defaultValue="true") boolean cascade,
 			@PathVariable Long id, @RequestBody WorkOrder workOrder,
+			@RequestParam(required=false, defaultValue="false") boolean nocheck,
 			HttpServletRequest request, HttpServletResponse response) {
 		workOrder.setId(id);
-		prmService.update(uid, workOrder, cascade);
+		prmService.update(uid, workOrder, cascade, nocheck);
 	}
 	
 	/**
@@ -121,11 +122,15 @@ public class PrmController {
 	}
 		
 	/**
-	 * Update status of WorkOrderMaterial.
+	 * 1. Update status of WorkOrderMaterial.
 	 * 
 	 * Allow to update the status of allocated (auto update upstream), 
 	 * the status of approved, double_checked and completed (all support auto update downstream).
 	 *
+	 * 2. Update the quantity or tolerance of the material in the workorder.
+	 *  It will automatically change the workorder's status to Approved, 
+	 *  add set the replenish to true to the workorder material. 
+	 *  
 	 * @param uid
 	 * @param id
 	 * @param workOrderContainer
@@ -143,11 +148,15 @@ public class PrmController {
 	}
 
 	/**
-	 * Update status of WorkOrderMaterial.
+	 * 1. Update status of WorkOrderMaterial.
 	 * 
 	 * Allow to update the status of allocated (auto update upstream), 
 	 * the status of approved, double_checked and completed (all support auto update downstream).
-	 *
+	 * 
+	 * 2. Update the quantity or tolerance of the material in the workorder.
+	 *  It will automatically change the workorder's status to Approved, 
+	 *  add set the replenish to true to the workorder material. 
+	 *  
 	 * @param uid
 	 * @param id
 	 * @param workOrderContainer
@@ -160,9 +169,26 @@ public class PrmController {
 	public void patch(@RequestParam Long uid, @RequestParam Long wid, @RequestParam Long mid,
 			@RequestBody WorkOrderMaterial workOrderMaterial,
 			HttpServletRequest request, HttpServletResponse response) {
-		Long womID = prmService.update(uid, workOrderMaterial, wid, mid);
+		prmService.update(uid, workOrderMaterial, wid, mid);
 	}
-
+	
+	/**
+	 * for adding material to an workorder even the status is feeded.
+	 * Change the workorder status back to approved, waiting for allocating.
+	 * @param uid
+	 * @param workOrderMaterial
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/workordermaterials", method = RequestMethod.POST)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void create(@RequestParam Long uid, 
+			@RequestBody WorkOrderMaterial workOrderMaterial,
+			HttpServletRequest request, HttpServletResponse response) {
+		WorkOrderMaterial saved = prmService.create(uid, workOrderMaterial);
+		response.setHeader("Location",  delLastChar(request.getRequestURL()) + "/" + saved.getId());
+	}
 	
 	/**
 	 * Get the each material quantity base on the bom.

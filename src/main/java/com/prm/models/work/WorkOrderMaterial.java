@@ -14,6 +14,9 @@ public class WorkOrderMaterial {
 	private Long sid;
 	private Long wid;
 	private Long mid;
+	private Long lid;
+	private Long pid;
+	private Integer replenish;
 	@Column(name="actl_total")
 	private Float actTotal = 0F;
 	@Column(name="actl_quantity")
@@ -89,6 +92,24 @@ public class WorkOrderMaterial {
 	}
 	public void setSid(Long sid) {
 		this.sid = sid;
+	}
+	public Long getLid() {
+		return lid;
+	}
+	public void setLid(Long lid) {
+		this.lid = lid;
+	}
+	public Long getPid() {
+		return pid;
+	}
+	public void setPid(Long pid) {
+		this.pid = pid;
+	}
+	public Integer getReplenish() {
+		return replenish;
+	}
+	public void setReplenish(Integer replenish) {
+		this.replenish = replenish;
 	}
 
 }

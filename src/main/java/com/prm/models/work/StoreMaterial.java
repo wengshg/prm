@@ -15,6 +15,8 @@ public class StoreMaterial {
 	private Long id;
 	private Long mid;
 	private Long rid;
+	private Long sid;
+	private Long wid;
 	@Column(name="original_code")
 	private String originalCode;
 	private Float quantity = 0F;
@@ -70,6 +72,18 @@ public class StoreMaterial {
 	}
 	public void setSignedUid(Long signedUid) {
 		this.signedUid = signedUid;
+	}
+	public Long getSid() {
+		return sid;
+	}
+	public void setSid(Long sid) {
+		this.sid = sid;
+	}
+	public Long getWid() {
+		return wid;
+	}
+	public void setWid(Long wid) {
+		this.wid = wid;
 	}
 	
 }

@@ -33,6 +33,13 @@ public interface PrmService {
 	void delete(Long wid);
 
 	/**
+	 * add additional material during the processing. (out controll of bom)
+	 * @param uid
+	 * @param workOrderMaterial
+	 * @return
+	 */
+	WorkOrderMaterial create(Long uid, WorkOrderMaterial workOrderMaterial);
+	/**
 	 * 
 	 * @param workOrderContainer
 	 * @return
@@ -67,7 +74,7 @@ public interface PrmService {
 	 * @param uid
 	 * @param workOrder
 	 */
-	void update(Long uid, WorkOrder workOrder, boolean cascade);
+	void update(Long uid, WorkOrder workOrder, boolean cascade, boolean nocheck);
 	
 	/**
 	 * return the estimated materials base on the bom id and quantity.

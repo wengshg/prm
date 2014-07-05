@@ -7,7 +7,7 @@
 -- V1.2.2 2014-6-15, add intialized data of weighing_room, workorder_container
 -- V1.2.3 2014-6-15, remove NOT NULL for workorder_log.uid
 -- V1.2.4 2014-6-20, split to drop tables file & init talbes file
--- V1.3 2014-6-27, add workorder.eid, process_flow.type change to tinyint.
+-- V1.3 2014-6-27, add material.container_weight, workorder.eid
 
 -- ----------------------------------------------------------------------------
 -- Create Tables 
@@ -28,7 +28,6 @@ CREATE TABLE line(
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
     quantity float,
-    unit varchar(8),
     enable tinyint
 );
 
@@ -57,16 +56,6 @@ CREATE TABLE weighing_room(
     name varchar(32) NOT NULL unique
 );
 
-CREATE TABLE container(
-    id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    code varchar(32) NOT NULL unique,
-    name varchar(32) NOT NULL unique,
-    type varchar(32),
-    quantity float,
-    unit varchar(8),
-    enable tinyint
-);
-
 CREATE TABLE product (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     code varchar(32) NOT NULL unique,
@@ -74,12 +63,14 @@ CREATE TABLE product (
     unit varchar(8)
 );
 
+
 CREATE TABLE material (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
     type varchar(32),
     container varchar(32),
+    container_weight float,  -- ï¿½ï¿½Ó¦Ô­ï¿½ï¿½Í°ï¿½ï¿½Ä¬ï¿½ï¿½Æ¤ï¿½ï¿½
     unit varchar(8),
     enable tinyint
 );
@@ -112,7 +103,7 @@ CREATE TABLE process_flow (
     pid int NOT NULL constraint fk_process_flow_pid foreign key references product(id),
     code varchar(32) NOT NULL unique,
     name varchar(32) NOT NULL unique,
-    type tinyint,
+    type varchar(32),
     enable tinyint
 );
 
@@ -132,10 +123,10 @@ CREATE TABLE process_flow_item (
 
 CREATE TABLE schedule (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    fid int NOT NULL constraint fk_schedule_fid foreign key references process_flow(id),
+    bid int NOT NULL constraint fk_schedule_bid foreign key references bom(id),
     lid int NOT NULL constraint fk_schedule_lid foreign key references line(id),
     pid int NOT NULL constraint fk_schedule_pid foreign key references product(id),
-    bid int NOT NULL constraint fk_schedule_bid foreign key references bom(id),
-    fid int NOT NULL constraint fk_schedule_fid foreign key references process_flow(id),
     code varchar(32) NOT NULL unique,
     quantity float,
     unit varchar(8),
@@ -149,14 +140,14 @@ CREATE TABLE schedule (
 
 CREATE TABLE workorder (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    sequence smallint,
     sid int NOT NULL constraint fk_workorder_sid foreign key references schedule(id),
-    lid int NOT NULL constraint fk_workorder_lid foreign key references line(id),
-    eid int NOT NULL constraint fk_workorder_eid foreign key references equipment(id), -- ¶ÔÓ¦Ò»¸öÍ°£¨¹ÞÌå£©
     pid int NOT NULL constraint fk_workorder_pid foreign key references product(id),
     bid int NOT NULL constraint fk_workorder_bid foreign key references bom(id),
     fid int NOT NULL constraint fk_workorder_fid foreign key references process_flow(id),
+    lid int NOT NULL constraint fk_workorder_lid foreign key references line(id),
+    eid int NOT NULL constraint fk_workorder_eid foreign key references equipment(id), -- ï¿½ï¿½Ó¦Ò»ï¿½ï¿½Í°ï¿½ï¿½ï¿½ï¿½ï¿½å£©
     code varchar(32) NOT NULL unique,
+    sequence smallint,
     quantity float,
     unit varchar(8),
     work_sdate bigint, 
@@ -167,27 +158,8 @@ CREATE TABLE workorder (
     operator_uid int constraint fk_workorder_operator_uid foreign key references [user](id)
 );
 
-CREATE TABLE workorder_material (
-    id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    sid int NOT NULL constraint fk_workorder_material_sid foreign key references schedule(id),
-    wid int NOT NULL constraint fk_workorder_material_bid foreign key references workorder(id),
-    mid int NOT NULL constraint fk_workorder_material_mid foreign key references material(id),
-    lid int NOT NULL constraint fk_workorder_material_lid foreign key references line(id),
-    eid int NOT NULL constraint fk_workorder_material_eid foreign key references equipment(id),
-    pid int NOT NULL constraint fk_workorder_material_pid foreign key references product(id),
-    actl_total float,
-    actl_quantity float,
-    quantity float,
-    tolerance float,
-    container_qty int,
-    unit varchar(8),
-    replenished tinyint,
-    status tinyint
-);
-
 CREATE TABLE workorder_container (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    sid int NOT NULL constraint fk_workorder_container_sid foreign key references schedule(id),
     wid int NOT NULL constraint fk_workorder_container_wid foreign key references workorder(id),
     mid int NOT NULL constraint fk_workorder_container_mid foreign key references material(id),
     pid int NOT NULL constraint fk_workorder_container_pid foreign key references product(id),
@@ -200,21 +172,28 @@ CREATE TABLE workorder_container (
     total float,
     quantity float,
     unit varchar(8),
-    replenished tinyint,
+    status tinyint
+);
+
+CREATE TABLE workorder_material (
+    id int NOT NULL PRIMARY KEY IDENTITY(1,1),
+    wid int NOT NULL constraint fk_workorder_material_wid foreign key references workorder(id),
+    mid int NOT NULL constraint fk_workorder_material_mid foreign key references material(id),
+    actl_total float,
+    actl_quantity float,
+    quantity float,
+    tolerance float,
+    container_qty int,
+    unit varchar(8),
     status tinyint
 );
 
 CREATE TABLE workorder_log (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    sid int NOT NULL constraint fk_workorder_log_sid foreign key references schedule(id),
-    wid int NOT NULL constraint fk_workorder_log_bid foreign key references workorder(id),
+    wid int NOT NULL constraint fk_workorder_log_wid foreign key references workorder(id),
     mid int,
-    pid int NOT NULL constraint fk_workorder_log_pid foreign key references product(id),
-    lid int NOT NULL constraint fk_workorder_log_lid foreign key references line(id),
-    eid int,
-    gid int,
-    sequence smallint,
     uid int,
+    sequence smallint,
     status tinyint,
     created_time bigint,
     created_uid int NOT NULL constraint fk_workorder_log_created_uid foreign key references [user](id)
@@ -222,10 +201,8 @@ CREATE TABLE workorder_log (
 
 CREATE TABLE store_material (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    rid int NOT NULL constraint fk_store_material_rid foreign key references weighing_room(id),
     mid int NOT NULL constraint fk_store_material_mid foreign key references material(id),
-    sid int,
-    wid int,
+    rid int NOT NULL constraint fk_store_material_rid foreign key references weighing_room(id),
     original_code varchar(64),
     quantity float,
     unit varchar(8),
@@ -235,25 +212,24 @@ CREATE TABLE store_material (
 
 CREATE TABLE store_requisition (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    sid int NOT NULL constraint fk_store_requisition_rid foreign key references schedule(id),
-    wid int,
-    code varchar(32),
+	sid int NOT NULL constraint fk_store_requisition_sid foreign key references schedule(id),
+    wid int NOT NULL constraint fk_store_requisition_wid foreign key references workorder(id),
+    code varchar(32) NOT NULL unique,
     created_date bigint,
-    created_uid int NOT NULL constraint fk_store_requisition_created_uid foreign key references [user](id),
+    created_uid int NOT NULL constraint fk_store_requisition_created_uid foreign key references [user](id)
     signed_date bigint,
     signed_uid int constraint fk_store_requisition_signed_uid foreign key references [user](id)
 );
 
 CREATE TABLE store_requisition_item (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
-    qid int NOT NULL constraint fk_store_requisition_item_qid foreign key references store_requisition(id),
-    sid int NOT NULL constraint fk_store_requisition_item_sid foreign key references schedule(id),
-    wid int,
-    mid int NOT NULL constraint fk_store_requisition_item_mid foreign key references material(id),
-    quantity float,
-    unit varchar(8)
+    qid int NOT NULL constraint fk_store_requisition_item_qid foreign key references material(id),
+	sid int NOT NULL constraint fk_store_requisition_item_sid foreign key references schedule(id),
+    wid int NOT NULL constraint fk_requisition_item_wid foreign key references workorder(id),
+    mid int NOT NULL constraint fk_requisition_item_mid foreign key references material(id),
+	quantity float,
+    unit varchar(8),
 );
-
 -- ----------------------------------------------------------------------------
 -- End of Initiailized Database Tables
 -- ----------------------------------------------------------------------------
@@ -262,72 +238,69 @@ CREATE TABLE store_requisition_item (
 -- Initiailize Data
 -- ----------------------------------------------------------------------------
 
-INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test1', 'spass', 'ÕÅÖ÷ÈÎ', '°ì¹«ÊÒ', '³µ¼äÖ÷ÈÎ', 'memo', 1);
-INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test2', 'spass', 'ÀîÉóºË', '°ì¹«ÊÒ', '³µ¼äÖ÷ÈÎ', 'memo', 1);
-INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test3', 'spass', 'ÕÅÈý', 'ÅäÁÏ²¿', 'ÅäÁÏÔ±', 'memo', 1);
-INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test4', 'spass', 'ÀîËÄ', 'Æ·±£²¿', 'Æ·±£Ô±', 'memo', 1);
-INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test5', 'spass', 'ÍõÎå', 'ÁìÁÏ²¿', 'ÁìÁÏÔ±', 'memo', 1);
+INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test1', 'spass', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ì¹«ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'memo', 1);
+INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test2', 'spass', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ì¹«ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'memo', 1);
+INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test3', 'spass', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½Ï²ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ô±', 'memo', 1);
+INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test4', 'spass', 'ï¿½ï¿½ï¿½ï¿½', 'Æ·ï¿½ï¿½ï¿½ï¿½', 'Æ·ï¿½ï¿½Ô±', 'memo', 1);
+INSERT INTO [user] (username, passwd, name, dept, role, memo, enable) VALUES ('s-test5', 'spass', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½Ï²ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ô±', 'memo', 1);
 
-INSERT INTO [line] (code, name, quantity, unit, enable) VALUES ('s-L001', 's-1ºÅ²úÏß', 32000, 'kl', 1);
-INSERT INTO [line] (code, name, quantity, unit, enable) VALUES ('s-L002', 's-2ºÅ²úÏß', 27000, 'kl', 1);
+INSERT INTO [line] (code, name, quantity, enable) VALUES ('s-L001', 's-1ï¿½Å²ï¿½ï¿½ï¿½', 32, 1);
+INSERT INTO [line] (code, name, quantity, enable) VALUES ('s-L002', 's-2ï¿½Å²ï¿½ï¿½ï¿½', 27, 1);
 
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0101', 's-1ºÅÏß½Á°è1¹Þ', '½Á°è¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0102', 's-1ºÅÏß½Á°è2¹Þ', '½Á°è¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0103', 's-1ºÅÏß½Á°è3¹Þ', '½Á°è¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0104', 's-1ºÅÏß½Á°è4¹Þ', '½Á°è¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0105', 's-1ºÅÏß½Á°è5¹Þ', '½Á°è¹Þ', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0101', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0102', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½2ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0103', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½3ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0104', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½4ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0105', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½5ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
 
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0106', 's-1ºÅÏß¼ÓÈÈ1¹Þ', '¼ÓÈÈ¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0107', 's-1ºÅÏß¼ÓÈÈ2¹Þ', '¼ÓÈÈ¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0108', 's-1ºÅÏß¼ÓÈÈ3¹Þ', '¼ÓÈÈ¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0109', 's-1ºÅÏß¼ÓÈÈ4¹Þ', '¼ÓÈÈ¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0110', 's-1ºÅÏß¼ÓÈÈ5¹Þ', '¼ÓÈÈ¹Þ', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0106', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0107', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½2ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0108', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½3ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0109', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½4ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (1, 's-E0110', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½5ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
 
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0201', 's-2ºÅÏß½Á°è1¹Þ', '½Á°è¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0202', 's-2ºÅÏß½Á°è2¹Þ', '½Á°è¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0203', 's-2ºÅÏß½Á°è3¹Þ', '½Á°è¹Þ', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0201', 's-2ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0202', 's-2ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½2ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0203', 's-2ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½3ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½', 1);
 
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0204', 's-2ºÅÏß¼ÓÈÈ1¹Þ', '¼ÓÈÈ¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0205', 's-2ºÅÏß¼ÓÈÈ2¹Þ', '¼ÓÈÈ¹Þ', 1);
-INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0206', 's-2ºÅÏß¼ÓÈÈ3¹Þ', '¼ÓÈÈ¹Þ', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0204', 's-2ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0205', 's-2ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½2ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
+INSERT INTO [equipment] (lid, code, name, type, enable) VALUES (2, 's-E0206', 's-2ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½3ï¿½ï¿½', 'ï¿½ï¿½ï¿½È¹ï¿½', 1);
 
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 1, 's-G0101T1', 's-1ºÅÏß½Á°è1¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 2, 's-G0102T1', 's-1ºÅÏß½Á°è2¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 3, 's-G0103T1', 's-1ºÅÏß½Á°è3¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 4, 's-G0104T1', 's-1ºÅÏß½Á°è4¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 5, 's-G0105T1', 's-1ºÅÏß½Á°è5¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 1, 's-G0101T1', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½1ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 2, 's-G0102T1', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½2ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 3, 's-G0103T1', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½3ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 4, 's-G0104T1', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½4ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 5, 's-G0105T1', 's-1ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½5ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
 
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 6, 's-G0106T1', 's-1ºÅÏß¼ÓÈÈ1¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 7, 's-G0107T1', 's-1ºÅÏß¼ÓÈÈ2¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 8, 's-G0108T1', 's-1ºÅÏß¼ÓÈÈ3¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 9, 's-G0109T1', 's-1ºÅÏß¼ÓÈÈ4¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 10, 's-G0110T1', 's-1ºÅÏß¼ÓÈÈ5¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 6, 's-G0106T1', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½1ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 7, 's-G0107T1', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½2ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 8, 's-G0108T1', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½3ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 9, 's-G0109T1', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½4ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (1, 10, 's-G0110T1', 's-1ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½5ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
 
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 11, 's-G0201T1', 's-2ºÅÏß½Á°è1¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 12, 's-G0202T1', 's-2ºÅÏß½Á°è2¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 13, 's-G0203T1', 's-2ºÅÏß½Á°è3¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 11, 's-G0201T1', 's-2ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½1ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 12, 's-G0202T1', 's-2ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½2ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 13, 's-G0203T1', 's-2ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½3ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
 
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 14, 's-G0204T1', 's-2ºÅÏß¼ÓÈÈ1¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 15, 's-G0205T1', 's-2ºÅÏß¼ÓÈÈ2¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
-INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 16, 's-G0206T1', 's-2ºÅÏß¼ÓÈÈ3¹Þ1¿Ú', '´óÍ¶ÁÏ¿Ú', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 14, 's-G0204T1', 's-2ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½1ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 15, 's-G0205T1', 's-2ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½2ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
+INSERT INTO [equipment_gate] (lid, eid, code, name, type, enable) VALUES (2, 16, 's-G0206T1', 's-2ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½3ï¿½ï¿½1ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1);
 
-INSERT INTO [container] (code, name, type, quantity, unit, enable) VALUES ('s-C001', '5KgÒºÁÏÍ°', 'ÒºÁÏÍ°', 5, 'kg', 1);
-INSERT INTO [container] (code, name, type, quantity, unit, enable) VALUES ('s-C002', '2gËÜÁÏ´ü', 'ËÜÁÏ´ü', 0.002, 'kg', 1);
+INSERT INTO [weighing_room] (code, name) VALUES ('s-R001', 's-1ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½');
+INSERT INTO [weighing_room] (code, name) VALUES ('s-R002', 's-2ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½');
 
-INSERT INTO [weighing_room] (code, name) VALUES ('s-R001', 's-1ºÅÅäÁÏ¼ä');
-INSERT INTO [weighing_room] (code, name) VALUES ('s-R002', 's-2ºÅÅäÁÏ¼ä');
+INSERT INTO [product] (code, name, unit) VALUES ('s-PNFGY01', 's-Å©ï¿½ï¿½ï¿½Ô°', 't');
+INSERT INTO [product] (code, name, unit) VALUES ('s-PDFSY01', 's-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶', 't');
+INSERT INTO [product] (code, name, unit) VALUES ('s-PSRC100', 's-Ë®ï¿½ï¿½C100', 't');
 
-INSERT INTO [product] (code, name, unit) VALUES ('s-PNFGY01', 's-Å©·ò¹ûÔ°', 't');
-INSERT INTO [product] (code, name, unit) VALUES ('s-PDFSY01', 's-¶«·½Ê÷Ò¶', 't');
-INSERT INTO [product] (code, name, unit) VALUES ('s-PSRC100', 's-Ë®ÈÜC100', 't');
-
-INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-FJ01', 's-·¬ÇÑÅ¨ËõÒº', 'ÒºÌåÁÏ', 'Í°', 'kg', 1);
-INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-XJ01', 's-Ïã¾«AºÅ', '·ÛÄ©ÁÏ', '°ü', 'kg', 1);
-INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-XL01', 's-ÏãÁÏ', '¹ÌÌåÁÏ', '°ü', 'kg', 1);
-INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-CY01', 's-²èÒ¶Å¨ËõÒº', 'ÒºÌåÁÏ', 'Í°', 'kg', 1);
-INSERT INTO [material] (code, name, type, container, unit, enable) VALUES ('s-CZ01', 's-³ÈÖ­Å¨ËõÒº', 'ÒºÌåÁÏ', 'Í°', 'kg', 1);
+INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-FJ01', 's-ï¿½ï¿½ï¿½ï¿½Å¨ï¿½ï¿½Òº', 'Òºï¿½ï¿½ï¿½ï¿½', 'Í°', 0, 'kg', 1);
+INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-XJ01', 's-ï¿½ã¾«Aï¿½ï¿½', 'ï¿½ï¿½Ä©ï¿½ï¿½', 'ï¿½ï¿½', 0.005, 'kg', 1);
+INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-XL01', 's-ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½', 0.005, 'kg', 1);
+INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-CY01', 's-ï¿½ï¿½Ò¶Å¨ï¿½ï¿½Òº', 'Òºï¿½ï¿½ï¿½ï¿½', 'Í°', 0, 'kg', 1);
+INSERT INTO [material] (code, name, type, container, container_weight, unit, enable) VALUES ('s-CZ01', 's-ï¿½ï¿½Ö­Å¨ï¿½ï¿½Òº', 'Òºï¿½ï¿½ï¿½ï¿½', 'Í°', 0, 'kg', 1);
 -- ----------------------------------------------------------------------------
--- Ô­ÁÏ½øÅäÁÏ¼ä
+-- Ô­ï¿½Ï½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½
 INSERT INTO [store_material] (mid, rid, original_code, quantity, unit, signed_date, signed_uid) VALUES (1, 1, 's-MO2014060601', 1100, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:00:00'), 1);
 INSERT INTO [store_material] (mid, rid, original_code, quantity, unit, signed_date, signed_uid) VALUES (1, 1, 's-MO2014060701', 1200, 'kg',
@@ -358,15 +331,15 @@ DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-11 12:06:00'), 1);
 --
 
 -- ----------------------------------------------------------------------------
--- Åä·½
-INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (1, 's-BNFGY01', 'Å©·ò¹ûÔ° 1ºÅÅä·½', 1000, 10, 'kg', 1);
-INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (1, 's-BNFGY02', 'Å©·ò¹ûÔ° 2ºÅÅä·½', 1000, 10, 'kg', 1);
-INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (2, 's-BDFSY01', '¶«·½Ê÷Ò¶ 1ºÅÅä·½', 1000, 10, 'kg', 1);
-INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (2, 's-BDFSY02', '¶«·½Ê÷Ò¶ 2ºÅÅä·½', 1000, 10, 'kg', 1);
-INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (3, 's-BSRC101', 'Ë®ÈÜC100 1ºÅÅä·½', 1000, 10, 'kg', 1);
-INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (3, 's-BSRC102', 'Ë®ÈÜC100 2ºÅÅä·½', 1000, 10, 'kg', 1);
+-- ï¿½ä·½
+INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (1, 's-BNFGY01', 'Å©ï¿½ï¿½ï¿½Ô° 1ï¿½ï¿½ï¿½ä·½', 1000, 10, 'kg', 1);
+INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (1, 's-BNFGY02', 'Å©ï¿½ï¿½ï¿½Ô° 2ï¿½ï¿½ï¿½ä·½', 1000, 10, 'kg', 1);
+INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (2, 's-BDFSY01', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ 1ï¿½ï¿½ï¿½ä·½', 1000, 10, 'kg', 1);
+INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (2, 's-BDFSY02', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ 2ï¿½ï¿½ï¿½ä·½', 1000, 10, 'kg', 1);
+INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (3, 's-BSRC101', 'Ë®ï¿½ï¿½C100 1ï¿½ï¿½ï¿½ä·½', 1000, 10, 'kg', 1);
+INSERT INTO [bom] (pid, code, name, quantity, tolerance, unit, enable) VALUES (3, 's-BSRC102', 'Ë®ï¿½ï¿½C100 2ï¿½ï¿½ï¿½ä·½', 1000, 10, 'kg', 1);
 
--- Å©·ò¹ûÔ° Åä·½Ïî
+-- Å©ï¿½ï¿½ï¿½Ô° ï¿½ä·½ï¿½ï¿½
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (1, 1, 1, 20, 2, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (1, 1, 2, 15, 1.5, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (1, 1, 3, 1,  0.1, 'kg');
@@ -375,7 +348,7 @@ INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (1, 2, 
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (1, 2, 2, 12, 1.2, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (1, 2, 3, 1.5,0.15, 'kg');
 
--- ¶«·½Ê÷Ò¶ Åä·½Ïî
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ä·½ï¿½ï¿½
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (2, 3, 4, 30, 3, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (2, 3, 2, 60, 6, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (2, 3, 3, 1.5,0.15, 'kg');
@@ -384,7 +357,7 @@ INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (2, 4, 
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (2, 4, 2, 80, 8, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (2, 4, 3, 1.5,0.15, 'kg');
 
--- Ë®ÈÜC100 Åä·½Ïî
+-- Ë®ï¿½ï¿½C100 ï¿½ä·½ï¿½ï¿½
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (3, 5, 5, 52, 5.2, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (3, 5, 2, 16, 1.6, 'kg');
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (3, 5, 3, 1.5,0.15, 'kg');
@@ -394,56 +367,56 @@ INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (3, 6, 
 INSERT INTO [bom_item] (pid, bid, mid, quantity, tolerance, unit) VALUES (3, 6, 3, 1,  0.1, 'kg');
 
 -- ----------------------------------------------------------------------------
---  ¹¤ÒÕ
+--  ï¿½ï¿½ï¿½ï¿½
 
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 1, 'F1NFGY0101', 'Å©·ò¹ûÔ° Åä·½1 ¹¤ÒÕ1',  1, 1); -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 1, 'F1NFGY0102', 'Å©·ò¹ûÔ° Åä·½1 ¹¤ÒÕ2',  2, 1); -- ÓÐÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 2, 'F1NFGY0201', 'Å©·ò¹ûÔ° Åä·½2 ¹¤ÒÕ1',  1, 1); -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 2, 'F1NFGY0202', 'Å©·ò¹ûÔ° Åä·½2 ¹¤ÒÕ2',  2, 1); -- ÓÐÐòÍ¶ÁÏ
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 1, 'F1NFGY0101', 'Å©ï¿½ï¿½ï¿½Ô° ï¿½ä·½1 ï¿½ï¿½ï¿½ï¿½1',  1, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 1, 'F1NFGY0102', 'Å©ï¿½ï¿½ï¿½Ô° ï¿½ä·½1 ï¿½ï¿½ï¿½ï¿½2',  2, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 2, 'F1NFGY0201', 'Å©ï¿½ï¿½ï¿½Ô° ï¿½ä·½2 ï¿½ï¿½ï¿½ï¿½1',  1, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (1, 1, 2, 'F1NFGY0202', 'Å©ï¿½ï¿½ï¿½Ô° ï¿½ä·½2 ï¿½ï¿½ï¿½ï¿½2',  2, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
 
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 3, 'F2DFSY0101', '¶«·½Ê÷Ò¶ Åä·½1 ¹¤ÒÕ1',  1, 1); -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 3, 'F2DFSY0102', '¶«·½Ê÷Ò¶ Åä·½1 ¹¤ÒÕ2',  2, 1); -- ÓÐÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 4, 'F2DFSY0201', '¶«·½Ê÷Ò¶ Åä·½2 ¹¤ÒÕ1',  1, 1); -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 4, 'F2DFSY0202', '¶«·½Ê÷Ò¶ Åä·½2 ¹¤ÒÕ2',  2, 1); -- ÓÐÐòÍ¶ÁÏ
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 3, 'F2DFSY0101', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ä·½1 ï¿½ï¿½ï¿½ï¿½1',  1, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 3, 'F2DFSY0102', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ä·½1 ï¿½ï¿½ï¿½ï¿½2',  2, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 4, 'F2DFSY0201', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ä·½2 ï¿½ï¿½ï¿½ï¿½1',  1, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (2, 2, 4, 'F2DFSY0202', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ä·½2 ï¿½ï¿½ï¿½ï¿½2',  2, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
 
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 5, 'F1SRC10101', 'Ë®ÈÜC100 Åä·½1 ¹¤ÒÕ1',  1, 1); -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 5, 'F1SRC10102', 'Ë®ÈÜC100 Åä·½1 ¹¤ÒÕ2',  2, 1); -- ÓÐÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 6, 'F1SRC10201', 'Ë®ÈÜC100 Åä·½2 ¹¤ÒÕ1',  1, 1); -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 6, 'F1SRC10202', 'Ë®ÈÜC100 Åä·½2 ¹¤ÒÕ2',  2, 1); -- ÓÐÐòÍ¶ÁÏ
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 5, 'F1SRC10101', 'Ë®ï¿½ï¿½C100 ï¿½ä·½1 ï¿½ï¿½ï¿½ï¿½1',  1, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 5, 'F1SRC10102', 'Ë®ï¿½ï¿½C100 ï¿½ä·½1 ï¿½ï¿½ï¿½ï¿½2',  2, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 6, 'F1SRC10201', 'Ë®ï¿½ï¿½C100 ï¿½ä·½2 ï¿½ï¿½ï¿½ï¿½1',  1, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow] (pid, lid, bid, code, name, type, enable) VALUES (3, 1, 6, 'F1SRC10202', 'Ë®ï¿½ï¿½C100 ï¿½ä·½2 ï¿½ï¿½ï¿½ï¿½2',  2, 1); -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
 
--- Å©·ò¹ûÔ° ¹¤ÒÕÏî -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (1, 1, 1, 1, 1, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1); 
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (1, 1, 1, 1, 2, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1);
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (1, 1, 1, 1, 3, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1);
+-- Å©ï¿½ï¿½ï¿½Ô° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (1, 1, 1, 1, 1, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1); 
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (1, 1, 1, 1, 2, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1);
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (1, 1, 1, 1, 3, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1);
 
--- Å©·ò¹ûÔ° ¹¤ÒÕÏî -- ÓÐÐòÍ¶ÁÏ
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (2, 1, 1, 2, 1, '¼ÓÈÈ¹Þ', '´óÍ¶ÁÏ¿Ú', 1, 10, 1); 
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (2, 1, 1, 2, 2, '¼ÓÈÈ¹Þ', '´óÍ¶ÁÏ¿Ú', 2, 30, 1);
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (2, 1, 1, 2, 3, '¼ÓÈÈ¹Þ', '´óÍ¶ÁÏ¿Ú', 3, 20, 1);
+-- Å©ï¿½ï¿½ï¿½Ô° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (2, 1, 1, 2, 1, 'ï¿½ï¿½ï¿½È¹ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1, 10, 1); 
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (2, 1, 1, 2, 2, 'ï¿½ï¿½ï¿½È¹ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 2, 30, 1);
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (2, 1, 1, 2, 3, 'ï¿½ï¿½ï¿½È¹ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 3, 20, 1);
 
--- ¶«·½Ê÷Ò¶ ¹¤ÒÕÏî -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (3, 2, 2, 3, 1, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1); 
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (3, 2, 2, 3, 2, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1);
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (3, 2, 2, 3, 3, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1);
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (3, 2, 2, 3, 1, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1); 
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (3, 2, 2, 3, 2, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1);
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (3, 2, 2, 3, 3, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1);
 
--- ¶«·½Ê÷Ò¶ ¹¤ÒÕÏî -- ÓÐÐòÍ¶ÁÏ
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (4, 2, 2, 4, 1, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 1, 30, 1); 
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (4, 2, 2, 4, 2, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 2, 30, 1);
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (4, 2, 2, 4, 3, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 3, 60, 1);
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (4, 2, 2, 4, 1, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1, 30, 1); 
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (4, 2, 2, 4, 2, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 2, 30, 1);
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (4, 2, 2, 4, 3, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 3, 60, 1);
 
--- Ë®ÈÜC100 ¹¤ÒÕÏî -- ÎÞÐòÍ¶ÁÏ
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (5, 3, 1, 5, 1, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1); 
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (5, 3, 1, 5, 2, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1);
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (5, 3, 1, 5, 3, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 0, 0, 1);
+-- Ë®ï¿½ï¿½C100 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (5, 3, 1, 5, 1, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1); 
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (5, 3, 1, 5, 2, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1);
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (5, 3, 1, 5, 3, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 0, 0, 1);
 
--- Ë®ÈÜC100 ¹¤ÒÕÏî -- ÓÐÐòÍ¶ÁÏ
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (6, 3, 1, 6, 1, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 1, 30, 1); 
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (6, 3, 1, 6, 2, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 2, 30, 1);
-INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (6, 3, 1, 6, 3, '½Á°è¹Þ', '´óÍ¶ÁÏ¿Ú', 3, 60, 1);
+-- Ë®ï¿½ï¿½C100 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (6, 3, 1, 6, 1, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 1, 30, 1); 
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (6, 3, 1, 6, 2, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 2, 30, 1);
+INSERT INTO [process_flow_item] (fid, pid, lid, bid, mid, eqpt_type, gate_type, sequence, interval, enable) VALUES (6, 3, 1, 6, 3, 'ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Í¶ï¿½Ï¿ï¿½', 3, 60, 1);
 
 
--- ¼Æ»®
-INSERT INTO [schedule] (lid, pid, bid, fid, code, quantity, unit, schd_sdate, schd_edate, schd_time, appr_time, schd_uid, appr_uid) VALUES (1, 1, 1, 1, 'S140606001', 3200, 'kl',
+-- ï¿½Æ»ï¿½
+INSERT INTO [schedule] (fid, pid, lid, bid, code, quantity, unit, schd_sdate, schd_edate, schd_time, appr_time, schd_uid, appr_uid) VALUES (1, 1, 1, 1, 'S140606001', 3200, 't',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:30:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-08-05 17:30:00'),
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:00:00'),
@@ -460,28 +433,28 @@ FROM [schedule];
 --
 
 
--- ¹¤µ¥
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140606001', 1, 32000, 'kl', 
+-- ï¿½ï¿½ï¿½ï¿½
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140606001', 1, 32000, 'kg', 
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 17:30:00'), 9, 1, 1, 2); -- Íê³É
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 1, 1, 'W140607001', 2, 32000, 'kl',
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-06 17:30:00'), 9, 1, 1, 2); -- ï¿½ï¿½ï¿½
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 1, 1, 'W140607001', 2, 32000, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-07 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-07 17:30:00'), 5, 1, 1, 2); -- ÒÑÍ¶
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140608001', 3, 32000, 'kl',
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-07 17:30:00'), 5, 1, 1, 2); -- ï¿½ï¿½Í¶
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140608001', 3, 32000, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-08 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-08 17:30:00'), 4, 1, 1, 2); -- ÒÑÁì
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140609001', 4, 32000, 'kl',
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-08 17:30:00'), 4, 1, 1, 2); -- ï¿½ï¿½ï¿½ï¿½
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140609001', 4, 32000, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-09 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-09 17:30:00'), 3, 1, 1, 2); -- ÒÑ¸´
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 2, 4, 'W140610001', 5, 32000, 'kl',
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-09 17:30:00'), 3, 1, 1, 2); -- ï¿½Ñ¸ï¿½
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 2, 1, 2, 4, 'W140610001', 5, 32000, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-10 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-10 17:30:00'), 2, 1, 1, 2); -- ÒÑÅä
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140611001', 6, 32000, 'kl',
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-10 17:30:00'), 2, 1, 1, 2); -- ï¿½ï¿½ï¿½ï¿½
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 3, 1, 1, 1, 'W140611001', 6, 32000, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-11 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-11 17:30:00'), 1, 1, 1, 2); -- ÒÑÉó
-INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140612001', 7, 32000, 'kl',
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-11 17:30:00'), 1, 1, 1, 2); -- ï¿½ï¿½ï¿½ï¿½
+INSERT INTO [workorder] (sid, lid, eid, pid, bid, fid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid) VALUES (1, 1, 1, 1, 1, 1, 'W140612001', 7, 32000, 'kg',
 DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-12 08:00:00'),
-DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-12 17:30:00'), 0, 1, 1, 2); -- Î´Ö´ÐÐ
+DATEDIFF(s, '1970-01-01 00:00:00', '2014-06-12 17:30:00'), 0, 1, 1, 2); -- Î´Ö´ï¿½ï¿½
 --
 SELECT sid, fid, pid, lid, bid, code, sequence, quantity, unit, work_sdate, work_edate, status, owner_uid, weighing_uid, operator_uid,
 	DATEADD(s, work_sdate, '1970-01-01 00:00:00') as work_sdate_s,
@@ -490,107 +463,107 @@ FROM [workorder];
 --
 
 
--- ¹¤µ¥Ô­ÁÏ
--- ¹¤µ¥1Íê³É
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 1, 1, 1, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 2, 1, 1, 1, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 3, 1, 1, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
+-- ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½
+-- ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
 
--- ¹¤µ¥2ÒÑÍ¶ (¿Í»§¶ËÃ»ÓÐÉèÖÃÍê³É±ê¼Ç£¬Ô­ÒòÎª£ºÍ¶ÁÏºó»¹ÐèÒªÆäËû¹¤ÒÕ´¦ÀíÊ±¼ä)
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 1, 1, 2, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 2, 1, 2, 1, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 2, 3, 1, 2, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
+-- ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½Í¶ (ï¿½Í»ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½Ç£ï¿½Ô­ï¿½ï¿½Îªï¿½ï¿½Í¶ï¿½Ïºï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Õ´ï¿½ï¿½ï¿½Ê±ï¿½ï¿½)
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (2, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (2, 2, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 5);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (2, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5);
 
--- ¹¤µ¥3ÒÑÁì (ËùÓÐ¹¤µ¥Ô­ÁÏstatus>=4, ²¢ÇÒ´æÔÚÖÁÉÙÒ»ÖÖÔ­ÁÏstatus=4)
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 1, 1, 3, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 4);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 2, 1, 3, 1, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 4);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 3, 3, 1, 3, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5); -- ¸ÃÔ­ÁÏÈ«²¿Í¶Íê£¬¹¤µ¥ÆäËûÔ­ÁÏÃ»ÓÐÈ«²¿Í¶Íê
+-- ï¿½ï¿½ï¿½ï¿½3ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½Ô­ï¿½ï¿½status>=4, ï¿½ï¿½ï¿½Ò´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ô­ï¿½ï¿½status=4)
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (3, 1, 32*20+3,  32*20+0.5, 32*20, 1, 3, 'kg', 4);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (3, 2, 32*15+3,  32*15+0.5, 32*15, 1, 3, 'kg', 4);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (3, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 5); -- ï¿½ï¿½Ô­ï¿½ï¿½È«ï¿½ï¿½Í¶ï¿½ê£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Ã»ï¿½ï¿½È«ï¿½ï¿½Í¶ï¿½ï¿½
 
--- ¹¤µ¥4ÒÑ¸´ºË
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 4, 1, 1, 1, 1, 32*20*1.0009+4,  32*22*1.0009,	  32*22,  1, 3, 'kg', 3);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 4, 2, 1, 1, 1, 32*15*1.0009+4,  32*12*1.0009,	  32*12,  1, 3, 'kg', 3);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 4, 3, 1, 1, 1, 32*1.5*1.0009+1,   32*1.5*1.0009,  32*1.5, 1, 3, 'kg', 3);
+-- ï¿½ï¿½ï¿½ï¿½4ï¿½Ñ¸ï¿½ï¿½ï¿½
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (4, 1, 32*20*1.0009+4,  32*22*1.0009,	  32*22,  1, 3, 'kg', 3);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (4, 2, 32*15*1.0009+4,  32*12*1.0009,	  32*12,  1, 3, 'kg', 3);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (4, 3, 32*1.5*1.0009+1,   32*1.5*1.0009,  32*1.5, 1, 3, 'kg', 3);
 
--- ¹¤µ¥5ÒÑÅä
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 5, 1, 1, 2, 1, 32*20+4,  32*20+0.5, 32*20, 1, 3, 'kg', 2);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 5, 2, 1, 2, 1, 32*15+4,  32*15+0.5, 32*15, 1, 3, 'kg', 2);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 5, 3, 1, 2, 1, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 2);
+-- ï¿½ï¿½ï¿½ï¿½5ï¿½ï¿½ï¿½ï¿½
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (5, 1, 32*20+4,  32*20+0.5, 32*20, 1, 3, 'kg', 2);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (5, 2, 32*15+4,  32*15+0.5, 32*15, 1, 3, 'kg', 2);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (5, 3, 32*1+1,   32*1+0.2,  32*1,  1, 3, 'kg', 2);
 
--- ¹¤µ¥6ÒÑÉó
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 6, 1, 1, 3, 1, 0,  0, 32*20, 32*20*0.001, 0, 'kg', 1);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 6, 2, 1, 3, 1, 0,  0, 32*15, 32*15*0.001, 0, 'kg', 1);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 6, 3, 1, 3, 1, 0,  0, 32*1,  32*1*0.001, 0, 'kg', 1);
+-- ï¿½ï¿½ï¿½ï¿½6ï¿½ï¿½ï¿½ï¿½
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (6, 1, 0,  0, 32*20, 32*20*0.001, 0, 'kg', 1);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (6, 2, 0,  0, 32*15, 32*15*0.001, 0, 'kg', 1);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (6, 3, 0,  0, 32*1,  32*1*0.001, 0, 'kg', 1);
 
--- ¹¤µ¥7Î´Ö´ÐÐ
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 7, 1, 1, 1, 1, 32*20+4,  32*20+0.5, 32*20, 1, 0, 'kg', 0);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 7, 2, 1, 1, 1, 32*15+4,  32*15+0.5, 32*15, 1, 0, 'kg', 0);
-INSERT INTO [workorder_material] (sid, wid, mid, lid, eid, pid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (1, 7, 3, 1, 1, 1, 32*1+1,   32*1+0.2,  32*1,  1, 0, 'kg', 0);
+-- ï¿½ï¿½ï¿½ï¿½7Î´Ö´ï¿½ï¿½
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (7, 1, 32*20+4,  32*20+0.5, 32*20, 1, 0, 'kg', 0);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (7, 2, 32*15+4,  32*15+0.5, 32*15, 1, 0, 'kg', 0);
+INSERT INTO [workorder_material] (wid, mid, actl_total, actl_quantity, quantity, tolerance, container_qty, unit, status) VALUES (7, 3, 32*1+1,   32*1+0.2,  32*1,  1, 0, 'kg', 0);
 
--- ¹¤µ¥Ô­ÁÏÍ°
--- ¹¤µ¥1Íê³É s-·¬ÇÑÅ¨ËõÒº 32*20 = 640 kg, Ã¿¸öÍ¶ÁÏ¿ÚÍ¶2Í°£¬Ã¿Í°80kg×óÓÒ¡£
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 1, 1,
+-- ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Í°
+-- ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ s-ï¿½ï¿½ï¿½ï¿½Å¨ï¿½ï¿½Òº 32*20 = 640 kg, Ã¿ï¿½ï¿½Í¶ï¿½Ï¿ï¿½Í¶2Í°ï¿½ï¿½Ã¿Í°80kgï¿½ï¿½ï¿½Ò¡ï¿½
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 1, 1,
 1, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 1, 1,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 1, 1,
 2, 80+3, 80.0, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 2, 2,
 3, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 2, 2,
 4, 80.3+3, 80.3, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 3, 3,
 5, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 3, 3,
 6, 80+3, 80.0, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 4, 4,
 7, 80.1+3, 80.1, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1, 1,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 1, 1,		1, 1, 4, 4,
 8, 80.3+3, 80.3, 'kg', 5);
 
--- ¹¤µ¥1Íê³É s-Ïã¾«AºÅ 32*15 = 480 kg, Ã¿¸öÍ¶ÁÏ¿ÚÍ¶1Í°£¬Ã¿Í°120kg×óÓÒ¡£
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 1, 1,
+-- ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ s-ï¿½ã¾«Aï¿½ï¿½ 32*15 = 480 kg, Ã¿ï¿½ï¿½Í¶ï¿½Ï¿ï¿½Í¶1Í°ï¿½ï¿½Ã¿Í°120kgï¿½ï¿½ï¿½Ò¡ï¿½
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 1, 1,
 1, 120.0+5, 120.0, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 2, 2,
 2, 120.3+5, 120.3, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 3, 3,
 3, 120.8+5, 119.8, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 2, 1, 1,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 2, 1, 1,		1, 1, 4, 4,
 4, 120.1+5, 120.1, 'kg', 5);
 
--- ¹¤µ¥1Íê³É s-ÏãÁÏ 32*1 = 32 kg, 2¸öÍ¶ÁÏ¿ÚÍ¶1°ü£¬Ã¿°ü16kg×óÓÒ¡£
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 3, 1, 1,		1, 1, 1, 1,
+-- ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ s-ï¿½ï¿½ï¿½ï¿½ 32*1 = 32 kg, 2ï¿½ï¿½Í¶ï¿½Ï¿ï¿½Í¶1ï¿½ï¿½Ã¿ï¿½ï¿½16kgï¿½ï¿½ï¿½Ò¡ï¿½
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 3, 1, 1,		1, 1, 1, 1,
 1, 16.3+0.3, 16.3, 'kg', 5);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 1, 3, 1, 1,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 3, 1, 1,		1, 1, 3, 3,
 2, 16.1+0.3, 16.1, 'kg', 5);
 
 
--- ¹¤µ¥Ô­ÁÏÍ°
--- ¹¤µ¥4ÒÑ¸´ºË s-·¬ÇÑÅ¨ËõÒº 32*22 = 704 kg, Ã¿¸öÍ¶ÁÏ¿ÚÍ¶1Í°£¬Ã¿Í°176kg×óÓÒ¡£
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 1, 1,
+-- ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Í°
+-- ï¿½ï¿½ï¿½ï¿½4ï¿½Ñ¸ï¿½ï¿½ï¿½ s-ï¿½ï¿½ï¿½ï¿½Å¨ï¿½ï¿½Òº 32*22 = 704 kg, Ã¿ï¿½ï¿½Í¶ï¿½Ï¿ï¿½Í¶1Í°ï¿½ï¿½Ã¿Í°176kgï¿½ï¿½ï¿½Ò¡ï¿½
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 1, 1,
 1, 176+3, 176, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 2, 2,
 2, 176+3, 176, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 3, 3,
 3, 176+3, 176, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 1, 1, 2,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 1, 1, 2,		1, 1, 4, 4,
 4, 176+3, 176, 'kg', 3);
 
--- ¹¤µ¥4ÒÑ¸´ºË s-Ïã¾«AºÅ 32*12 = 384 kg, Ã¿¸öÍ¶ÁÏ¿ÚÍ¶1°ü£¬Ã¿°ü96kg×óÓÒ¡£
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 1, 1,
+-- ï¿½ï¿½ï¿½ï¿½4ï¿½Ñ¸ï¿½ï¿½ï¿½ s-ï¿½ã¾«Aï¿½ï¿½ 32*12 = 384 kg, Ã¿ï¿½ï¿½Í¶ï¿½Ï¿ï¿½Í¶1ï¿½ï¿½Ã¿ï¿½ï¿½96kgï¿½ï¿½ï¿½Ò¡ï¿½
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 1, 1,
 1, 96.0+5, 96.0, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 2, 2,
 2, 96.3+5, 96.3, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 3, 3,
 3, 96.8+5, 96.8, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 2, 1, 2,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 2, 1, 2,		1, 1, 4, 4,
 4, 96.1+5, 96.1, 'kg', 3);
 
--- ¹¤µ¥4ÒÑ¸´ºË s-ÏãÁÏ 32*1.5 = 48 kg, Ã¿¸öÍ¶ÁÏ¿ÚÍ¶1°ü£¬Ã¿°ü12kg×óÓÒ¡£
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 1, 1,
+-- ï¿½ï¿½ï¿½ï¿½4ï¿½Ñ¸ï¿½ï¿½ï¿½ s-ï¿½ï¿½ï¿½ï¿½ 32*1.5 = 48 kg, Ã¿ï¿½ï¿½Í¶ï¿½Ï¿ï¿½Í¶1ï¿½ï¿½Ã¿ï¿½ï¿½12kgï¿½ï¿½ï¿½Ò¡ï¿½
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 1, 1,
 1, 12.3+0.3, 12.3, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 2, 2,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 2, 2,
 2, 12.1+0.3, 12.1, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 3, 3,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 3, 3,
 3, 12.3+0.3, 12.3, 'kg', 3);
-INSERT INTO [workorder_container] (sid, wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (1, 4, 3, 1, 2,		1, 1, 4, 4,
+INSERT INTO [workorder_container] (wid, mid, fid, bid, lid, pid, eid, gid, [sequence], total, quantity, unit, status) VALUES (4, 3, 1, 2,		1, 1, 4, 4,
 4, 12.1+0.3, 12.1, 'kg', 3);
 
 -- ----------------------------------------------------------------------------
