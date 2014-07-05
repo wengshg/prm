@@ -15,6 +15,7 @@ public class WorkOrderMaterial {
 	private Long wid;
 	private Long mid;
 	private Long lid;
+	private Long eid;
 	private Long pid;
 	private Integer replenish;
 	@Column(name="actl_total")
@@ -110,6 +111,12 @@ public class WorkOrderMaterial {
 	}
 	public void setReplenish(Integer replenish) {
 		this.replenish = replenish;
+	}
+	public Long getEid() {
+		return eid;
+	}
+	public void setEid(Long eid) {
+		this.eid = eid;
 	}
 
 }

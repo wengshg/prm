@@ -556,6 +556,10 @@ public class PrmServiceImpl implements PrmService {
 			wom.setMid(bomItem.getMid());
 			wom.setUnit(bomItem.getUnit());
 			wom.setWid(woDB.getId());
+			wom.setPid(woDB.getPid());
+			wom.setLid(woDB.getLid());
+			wom.setSid(woDB.getSid());
+			wom.setEid(woDB.getEid());
 			
 			WorkOrderMaterial womDB = saveWithLog(uid, wom);
 			if (logger.isInfoEnabled()) {

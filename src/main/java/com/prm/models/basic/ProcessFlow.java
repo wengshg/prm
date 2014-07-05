@@ -15,7 +15,7 @@ public class ProcessFlow {
 	private Long pid;
 	private String code;
 	private String name;
-	private String type;
+	private Integer type;
 	private Integer enable;
 	public Long getId() {
 		return id;
@@ -53,10 +53,10 @@ public class ProcessFlow {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public String getType() {
+	public Integer getType() {
 		return type;
 	}
-	public void setType(String type) {
+	public void setType(Integer type) {
 		this.type = type;
 	}
 	public Integer getEnable() {
