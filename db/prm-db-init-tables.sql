@@ -236,8 +236,8 @@ CREATE TABLE store_material (
 CREATE TABLE store_requisition (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     sid int NOT NULL constraint fk_store_requisition_rid foreign key references schedule(id),
-    wid int,
-    code varchar(32),
+    wid int constraint fk_store_requisition_wid foreign key references workorder(id),
+    code varchar(32) NOT NULL unique,
     created_date bigint,
     created_uid int NOT NULL constraint fk_store_requisition_created_uid foreign key references [user](id),
     signed_date bigint,
@@ -248,7 +248,7 @@ CREATE TABLE store_requisition_item (
     id int NOT NULL PRIMARY KEY IDENTITY(1,1),
     qid int NOT NULL constraint fk_store_requisition_item_qid foreign key references store_requisition(id),
     sid int NOT NULL constraint fk_store_requisition_item_sid foreign key references schedule(id),
-    wid int,
+    wid int NOT NULL constraint fk_requisition_item_wid foreign key references workorder(id),
     mid int NOT NULL constraint fk_store_requisition_item_mid foreign key references material(id),
     quantity float,
     unit varchar(8)
