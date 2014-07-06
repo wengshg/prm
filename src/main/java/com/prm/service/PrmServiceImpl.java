@@ -317,7 +317,7 @@ public class PrmServiceImpl implements PrmService {
 	}
 	
 	/**
-	 * Only supports change the quantity and tolerance now.
+	 * Only supports change the quantity, unit and tolerance now.
 	 * @param uid
 	 * @param workOrderMaterial
 	 */
@@ -347,6 +347,7 @@ public class PrmServiceImpl implements PrmService {
 			retVal = true;
 			db.setQuantity(req.getQuantity());
 			db.setTolerance(req.getTolerance());
+			db.setUnit(req.getUnit());
 		}
 		return retVal;
 	}
