@@ -17,6 +17,7 @@ public class ProcessFlowItem {
 	private Long pid;
 	private Long mid;
 	private Integer sequence;
+    @Column(name="`interval`")
 	private Integer interval;
 	@Column(name="eqpt_type")
 	private String eqptType;
