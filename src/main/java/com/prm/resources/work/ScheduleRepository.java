@@ -16,4 +16,8 @@ public interface ScheduleRepository extends PrmRepository<Schedule, Long> {
 	@Query("select o from Schedule o where o.schdStartDate <= :date and o.schdEndDate >= :date")
 	List<Schedule> findByDT(@Param("date") Long date);
 
+	
+	List<Schedule> findByCode(@Param("code") String code);
+	
+	List<Schedule> findByCodeLike(@Param("code") String code);
 }

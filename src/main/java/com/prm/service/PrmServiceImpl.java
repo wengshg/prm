@@ -323,17 +323,14 @@ public class PrmServiceImpl implements PrmService {
 	 */
 	private void updateNonStatus(Long uid, WorkOrderMaterial womDB,
 			WorkOrderMaterial workOrderMaterial) {
-		if (womDB.getStatus().intValue() > STATUS_CREATED) {
-			throw new PrmInputException(EXCEPTIONKEY_ACTION_NOTALLOWED, "Not allow to update, as its status is: " + womDB.getStatus());
-		}
 		if (ifUpdatedNonStatus(workOrderMaterial, womDB)) {
 			//1. update workorder status to approved.
 			WorkOrder workOrder = workOrderRepository.findOne(womDB.getWid());
-			workOrder.setStatus(this.STATUS_APPROVED);
+			workOrder.setStatus(STATUS_APPROVED);
 			saveWithLog(uid, workOrder);
 
 			//2. update workorder material
-			womDB.setStatus(this.STATUS_APPROVED);
+			womDB.setStatus(STATUS_APPROVED);
 			womDB.setReplenish(REPELENISH);
 			saveWithLog(uid, womDB);
 		}
