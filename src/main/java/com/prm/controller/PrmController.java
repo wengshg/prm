@@ -127,7 +127,7 @@ public class PrmController {
 	 * Allow to update the status of allocated (auto update upstream), 
 	 * the status of approved, double_checked and completed (all support auto update downstream).
 	 *
-	 * 2. Update the quantity or tolerance of the material in the workorder.
+	 * 2. Update the quantity, unit or tolerance of the material in the workorder.
 	 *  It will automatically change the workorder's status to Approved, 
 	 *  add set the replenish to true to the workorder material. 
 	 *  
@@ -153,7 +153,7 @@ public class PrmController {
 	 * Allow to update the status of allocated (auto update upstream), 
 	 * the status of approved, double_checked and completed (all support auto update downstream).
 	 * 
-	 * 2. Update the quantity or tolerance of the material in the workorder.
+	 * 2. Update the quantity,  unit or tolerance of the material in the workorder.
 	 *  It will automatically change the workorder's status to Approved, 
 	 *  add set the replenish to true to the workorder material. 
 	 *  
