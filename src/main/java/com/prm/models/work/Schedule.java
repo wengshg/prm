@@ -4,6 +4,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.JoinTable;
+import javax.persistence.JoinColumn;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,7 +18,7 @@ public class Schedule {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
-	
+	@JoinTable(name="process_flow", joinColumns = @JoinColumn(name="fid",referencedColumnName="id"))
 	private Long fid;
 	private Long bid;
 	private Long lid;
