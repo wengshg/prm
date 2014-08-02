@@ -29,6 +29,5 @@ public interface WorkOrderRepository extends PrmRepository<WorkOrder, Long> {
 	@Query("select o from workorder o where ((:startdate < :enddate) and NOT ((o.workEndDate < :startdate) or (o.workStartDate > :enddate)))")
 	List<WorkOrder> findByDateRange(@Param("startdate") Long startdate, @Param("enddate") Long enddate);
 	
-	
-
+	List<WorkOrder> findBySid(@Param("sid") Long sid);
 }
