@@ -38,6 +38,7 @@ public class WorkOrder {
 	@NotNull(groups={Create.class})
 	private Long workEndDate;
 	private Integer status = 0;
+	private Integer replenish;
 	@Column(name="owner_uid")
 	@NotNull(groups={Create.class})
 	private Long ownerUid;
@@ -146,6 +147,12 @@ public class WorkOrder {
 	}
 	public void setEid(Long eid) {
 		this.eid = eid;
+	}
+	public Integer getReplenish() {
+		return replenish;
+	}
+	public void setReplenish(Integer replenish) {
+		this.replenish = replenish;
 	}
 
 }

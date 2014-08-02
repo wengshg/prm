@@ -327,6 +327,7 @@ public class PrmServiceImpl implements PrmService {
 			//1. update workorder status to approved.
 			WorkOrder workOrder = workOrderRepository.findOne(womDB.getWid());
 			workOrder.setStatus(STATUS_APPROVED);
+			workOrder.setReplenish(REPELENISH);
 			saveWithLog(uid, workOrder);
 
 			//2. update workorder material
