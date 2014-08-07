@@ -30,4 +30,8 @@ public interface WorkOrderRepository extends PrmRepository<WorkOrder, Long> {
 	List<WorkOrder> findByDateRange(@Param("startdate") Long startdate, @Param("enddate") Long enddate);
 	
 	List<WorkOrder> findBySid(@Param("sid") Long sid);
+	
+	List<WorkOrder> findByStatus(@Param("status") Integer status);
+	
+	List<WorkOrder> findByLidAndStatus(@Param("lid") Long lid, @Param("status") Integer status);
 }

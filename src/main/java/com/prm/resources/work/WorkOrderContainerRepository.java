@@ -45,5 +45,8 @@ public interface WorkOrderContainerRepository extends
 	 */
 	List<WorkOrderContainer> findByWidAndMidAndSequence(@Param("wid") Long wid,
 			@Param("mid") Long mid, @Param("sequence") Integer sequence);
+	
+	
+	List<WorkOrderContainer> findByWidAndStatus(@Param("wid") Long wid, @Param("status") Integer status);
 
 }

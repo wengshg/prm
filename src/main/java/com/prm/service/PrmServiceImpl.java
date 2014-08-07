@@ -430,6 +430,9 @@ public class PrmServiceImpl implements PrmService {
 		if (req.getOperatorUid() != null) {
 			woDB.setOperatorUid(req.getOperatorUid());
 		}
+		if (req.getEid() != null ) {
+			woDB.setEid(req.getEid());
+		}
 		
 		return retVal;
 	}
