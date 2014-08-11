@@ -34,4 +34,8 @@ public interface WorkOrderRepository extends PrmRepository<WorkOrder, Long> {
 	List<WorkOrder> findByStatus(@Param("status") Integer status);
 	
 	List<WorkOrder> findByLidAndStatus(@Param("lid") Long lid, @Param("status") Integer status);
+	
+	@Query(value = "select distinct wo.* from workorder wo, workorder_container wc where wo.id = wc.wid and wc.eid=:eid and wc.status=:status order by wo.code", nativeQuery = true)
+	List<WorkOrder> findByWorderContainerEidAndStatus(@Param("eid") Long eid,
+			@Param("status") Integer status);
 }
