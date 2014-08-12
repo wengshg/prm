@@ -12,4 +12,6 @@ import com.prm.resources.PrmRepository;
 public interface BomItemRepository extends PrmRepository<BomItem, Long> {
 	
 	List<BomItem> findByBid(@Param("bid") Long bid);
+	
+	List<BomItem> findByBidOrderByQuantity(@Param("bid") Long bid);
 }

@@ -14,5 +14,7 @@ public interface ProcessFlowItemRepository extends
 	
 	List<ProcessFlowItem> findByFid(@Param("fid") Long fid);
 	
+	List<ProcessFlowItem> findByFidOrderBySequence(@Param("fid") Long fid);
+	
 	List<ProcessFlowItem> findByFidAndMid(@Param("fid") Long fid, @Param("mid") Long mid);
 }
