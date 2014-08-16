@@ -2,6 +2,7 @@ package com.prm.resources.work;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.rest.core.annotation.RestResource;
@@ -49,4 +50,6 @@ public interface WorkOrderContainerRepository extends
 	
 	List<WorkOrderContainer> findByWidAndStatus(@Param("wid") Long wid, @Param("status") Integer status);
 
+	@Query(value = "select wc.* from workorder_container wc, process_flow_item pfi where wc.mid=pfi.mid and wc.fid=pfi.fid  and wid=:wid and eid=:eid order by pfi.sequence asc, wc.sequence asc", nativeQuery = true)
+	List<WorkOrderContainer> findByWidAndEidOrderBySeqAndInPFI(@Param("wid") Long wid, @Param("eid") Long eid);
 }
