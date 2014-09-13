@@ -86,7 +86,10 @@ public class PrmServiceImpl implements PrmService {
 		for (BomItem bomItem : bomItems) {
 			Float biQty = bomItem.getQuantity();
 			Float qty = quantity * (biQty / bomQty);
+			Float biTorn = bomItem.getTolerance();
+			Float torn = quantity * ( biTorn / bomQty);
 			bomItem.setQuantity(qty);
+			bomItem.setTolerance(torn);
 		}
 		
 		return bomItems;
@@ -125,7 +128,8 @@ public class PrmServiceImpl implements PrmService {
 		WorkOrderMaterial wom = workOrderMaterialRepository.save(workOrderMaterial);
 		if (wom != null && wom.getWid() != null) {
 			WorkOrder workOrder = workOrderRepository.findOne(wom.getWid());
-			workOrder.setStatus(this.STATUS_APPROVED);
+			workOrder.setStatus(STATUS_APPROVED);
+			workOrder.setReplenish(REPELENISH);
 			saveWithLog(uid, workOrder);
 			
 			//add the log.
